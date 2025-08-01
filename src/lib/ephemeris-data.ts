@@ -49,5 +49,3 @@ export const ephemerisData: { [date: string]: DailyEphemeris } = {
         "Rahu": { "rashi": "Cancer", "nakshatra": "Ashlesha", "nakshatraPada": 4, "longitude": 118.9 }
     },
 };
-
-    

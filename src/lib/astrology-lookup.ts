@@ -23,5 +23,3 @@ export function lookupPlanetaryData(date: string): DailyEphemeris | null {
     const fallbackDates = Object.keys(ephemerisData);
     return ephemerisData[fallbackDates[0]];
 }
-
-    

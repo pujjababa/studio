@@ -126,5 +126,3 @@ export function getVara(dayOfWeek: number) {
   ];
   return varaNames[dayOfWeek];
 }
-
-    
