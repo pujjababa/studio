@@ -30,7 +30,7 @@ const formatTiming = (timing?: {start: string, end: string}) => {
 export async function fetchProkeralaPanchang(dateString: string, location: string = 'New Delhi, India'): Promise<PanchangResult> {
     try {
         // Step 1: Get the access token
-        const authResponse = await fetch('https://api.prokerala.com/v2/token', {
+        const authResponse = await fetch('https://api.prokerala.com/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
