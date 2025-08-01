@@ -73,33 +73,6 @@ async function UpcomingFestivals() {
   }
 }
 
-async function TestPanchang() {
-  try {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    console.log(`Testing ProKerala API for date: ${today}`);
-    const panchang = await panchangGenerator({ date: today, location: 'New Delhi, India' });
-    console.log('Successfully fetched and cached panchang data:', panchang);
-    return (
-        <div className="container mx-auto px-4 md:px-6 my-4">
-            <div className="p-4 bg-green-100 border border-green-300 rounded-lg text-green-800">
-                <p className="font-bold">Test Successful!</p>
-                <p>Successfully fetched Panchang data from ProKerala API for today and saved it to MongoDB. You can check your database now.</p>
-            </div>
-        </div>
-    );
-  } catch (e: any) {
-    console.error("Panchang test failed:", e);
-     return (
-        <div className="container mx-auto px-4 md:px-6 my-4">
-            <div className="p-4 bg-red-100 border border-red-300 rounded-lg text-red-800">
-                <p className="font-bold">Test Failed!</p>
-                <p>Could not fetch data from ProKerala API. Error: {e.message}. Please check your API keys in the .env file and your MongoDB connection.</p>
-            </div>
-        </div>
-    );
-  }
-}
-
 export default async function Home() {
   const features = [
     {
@@ -130,7 +103,6 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col">
-      <TestPanchang />
       <section className="relative w-full py-20 md:py-32 lg:py-40 bg-card">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="max-w-3xl mx-auto">
