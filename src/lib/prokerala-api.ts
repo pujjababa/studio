@@ -1,3 +1,4 @@
+
 import { format } from 'date-fns';
 import type { PanchangResult } from './types';
 
@@ -24,18 +25,20 @@ export async function fetchProkeralaPanchang(date: string, location: string = 'N
     }
 
     const coordinates = '28.6139,77.2090'; // Default to New Delhi
+    const ayanamsa = 1; // Lahiri
+    const datetime = `${date}T12:00:00+00:00`; // Use midday for the given date, ensuring UTC format
 
-    const response = await fetch(API_URL, {
-        method: 'POST',
+    const url = new URL(API_URL);
+    url.searchParams.append('datetime', datetime);
+    url.searchParams.append('ayanamsa', ayanamsa.toString());
+    url.searchParams.append('coordinates', coordinates);
+
+
+    const response = await fetch(url.toString(), {
+        method: 'GET',
         headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${CLIENT_ID}:${CLIENT_SECRET}`
-        },
-        body: JSON.stringify({
-            datetime: `${date}T12:00:00Z`, // Use midday for the given date
-            ayanamsa: 1, // Lahiri
-            coordinates: coordinates
-        })
+        }
     });
 
     if (!response.ok) {
