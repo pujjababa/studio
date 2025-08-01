@@ -20,12 +20,13 @@ const formatTiming = (timing: {start: string, end: string}) => {
 
 export async function fetchProkeralaPanchang(dateString: string, location: string = 'New Delhi, India'): Promise<PanchangResult> {
     try {
+        // Step 1: Get the access token
         const authResponse = await fetch('https://api.prokerala.com/v2/token', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
+            body: new URLSearchParams({
                 grant_type: 'client_credentials',
                 client_id: CLIENT_ID,
                 client_secret: CLIENT_SECRET,
@@ -36,6 +37,7 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         }
         const { access_token } = await authResponse.json();
 
+        // Step 2: Fetch Panchang data using the token
         const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang?ayanamsa=1&coordinates=${location}&datetime=${dateString}T12:00:00Z`, {
             method: 'GET',
             headers: {
