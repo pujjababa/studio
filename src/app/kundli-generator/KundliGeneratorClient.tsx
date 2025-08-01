@@ -368,5 +368,3 @@ export function KundliGeneratorClient() {
     </div>
   );
 }
-
-    
