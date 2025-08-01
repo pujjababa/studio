@@ -35,11 +35,12 @@ export async function GET() {
         try {
             // Note: We use panchang as a proxy for planetary data fetching in this example.
             // A production app would have a dedicated function for planetary positions.
-            const data = await fetchProkeralaPanchang(dateString, 'New Delhi, India');
+            // This function would call the "Planetary Positions API" from Prokerala.
+            const planetaryData = await fetchProkeralaPanchang(dateString, 'New Delhi, India');
             
             await collection.updateOne(
                 { _id: dateString },
-                { $set: data },
+                { $set: { date: dateString, data: planetaryData } }, // Store raw planetary data
                 { upsert: true }
             );
 
