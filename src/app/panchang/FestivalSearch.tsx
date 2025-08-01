@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { festivalFinder } from '@/ai/flows/festival-finder';
+import { festivalDetails as getFestivalDetails } from '@/ai/flows/festival-finder';
 import type { FestivalDetails } from '@/lib/types';
 import { format, parse } from 'date-fns';
 
@@ -48,7 +48,7 @@ function FestivalSearchComponent() {
     setIsLoading(true);
     setFestivalDetails(null);
     try {
-      const result = await festivalFinder({ query });
+      const result = await getFestivalDetails(query);
       setFestivalDetails(result);
     } catch (error: any) {
       console.error('Error finding festival:', error);
@@ -83,7 +83,7 @@ function FestivalSearchComponent() {
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Find a Festival</CardTitle>
           <CardDescription>
-            Search for any Hindu festival (e.g., "Raksha Bandhan 2025", "Holi") to get AI-generated details.
+            Search for any Hindu festival (e.g., "Raksha Bandhan 2025", "Holi") to get accurate details.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,8 +194,8 @@ const FestivalDayDetails = ({ details }: { details: FestivalDetails['dailyDetail
       </CardHeader>
       <CardContent className="space-y-2">
           <TimingRow label="Tithi" value={`${details.tithi}`} />
-          <TimingRow label="Begins" value={format(parse(details.tithiBegins, 'yyyy-MM-dd HH:mm', new Date()), 'MMM d, h:mm a')} />
-          <TimingRow label="Ends" value={format(parse(details.tithiEnds, 'yyyy-MM-dd HH:mm', new Date()), 'MMM d, h:mm a')} />
+          <TimingRow label="Begins" value={details.tithiBegins ? format(parse(details.tithiBegins, 'yyyy-MM-dd HH:mm', new Date()), 'MMM d, h:mm a') : 'N/A'} />
+          <TimingRow label="Ends" value={details.tithiEnds ? format(parse(details.tithiEnds, 'yyyy-MM-dd HH:mm', new Date()), 'MMM d, h:mm a') : 'N/A'} />
       </CardContent>
     </Card>
 

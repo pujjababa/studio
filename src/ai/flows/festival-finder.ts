@@ -2,141 +2,76 @@
 'use server';
 
 /**
- * @fileOverview An AI agent for finding festival details.
- * This agent now uses a hybrid approach:
- * 1. A local, reliable database (`festival-data.ts`) provides the accurate date.
- * 2. It then fetches precise daily panchang data from the Prokerala-powered
- *    panchangGenerator for that date.
- * 3. AI is used ONLY to generate rich descriptions based on the accurate data.
+ * @fileOverview A reliable system for getting festival details.
+ * This file is now the central point for combining trusted local data
+ * with live Panchang data to generate accurate festival information.
  *
- * - festivalFinder - A function that handles the festival finding process.
- * - FestivalFinderInput - The input type for the festivalFinder function.
- * - FestivalDetails - The return type for the festivalFinder function.
+ * - festivalDetails - A new function that orchestrates the data gathering.
  */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import { FestivalFinderInputSchema, FestivalFinderOutputSchema } from '@/lib/types';
-import type { FestivalFinderInput, FestivalDetails } from '@/lib/types';
-import { connectToDatabase } from '@/lib/mongodb';
 import { panchangGenerator } from './panchang-generator';
+import { festivalDescriberFlow } from './festival-describer';
 import { festivalDatabase } from '@/lib/festival-data';
-import { format, getYear, parseISO } from 'date-fns';
+import type { FestivalDetails } from '@/lib/types';
+import { connectToDatabase } from '@/lib/mongodb';
+import { format, parse } from 'date-fns';
 
-export async function festivalFinder(input: FestivalFinderInput): Promise<FestivalDetails> {
-  const { db } = await connectToDatabase();
-  const normalizedQuery = input.query.toLowerCase().trim();
-  const cacheKey = `festival_v3_${normalizedQuery}`;
-  const cacheCollection = db.collection('festival_cache');
+export async function festivalDetails(query: string): Promise<FestivalDetails> {
+    const { db } = await connectToDatabase();
+    const normalizedQuery = query.toLowerCase().trim();
+    const cacheKey = `festival_details_v4_${normalizedQuery}`;
+    const cacheCollection = db.collection('festival_cache');
 
-  // 1. Check for a valid cache entry in MongoDB
-  const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-  if (cachedData) {
-    const { _id, ...festivalData } = cachedData;
-    return festivalData as FestivalDetails;
-  }
-  
-  // 2. Find the festival date from our reliable local database
-  const festivalInfo = festivalDatabase.find(f => normalizedQuery.includes(f.name.toLowerCase()));
+    const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+    if (cachedData) {
+        const { _id, ...festivalData } = cachedData;
+        return festivalData as FestivalDetails;
+    }
 
-  if (!festivalInfo) {
-      throw new Error(`The festival "${input.query}" was not found in our database. Please try a different name or check back later.`);
-  }
+    // 1. Find the festival date from our reliable local database
+    const festivalInfo = festivalDatabase.find(f => normalizedQuery.includes(f.name.toLowerCase()));
 
-  const festivalDate = festivalInfo.date;
-
-  // 3. Fetch accurate panchang data for that specific date
-  const panchang = await panchangGenerator({ date: festivalDate });
-
-  // 4. Call the AI to generate descriptive content based on the accurate data
-  const aiResult = await festivalFinderFlow({
-      query: input.query,
-      date: festivalDate,
-      panchang, // Pass the accurate panchang data to the AI
-  });
-
-  const finalResult: FestivalDetails = {
-    ...aiResult,
-    dailyDetails: [{
-      ...aiResult.dailyDetails[0],
-      // Override AI data with precise data from panchang generator
-      date: festivalDate,
-      day: panchang.day,
-      tithi: panchang.tithi,
-      nakshatra: panchang.nakshatra,
-      rahuKaal: panchang.rahuKaal,
-      gulikaKaal: panchang.gulikaKaal,
-      yamaganda: panchang.yamaganda,
-      abhijitMuhurat: panchang.abhijitMuhurat,
-    }]
-  };
-
-  // 5. Store the new, combined result in the MongoDB cache
-  await cacheCollection.updateOne(
-    { _id: cacheKey },
-    { $set: finalResult },
-    { upsert: true }
-  );
-  
-  return finalResult;
-}
-
-
-// This is the input for the AI flow, which now includes the correct date and panchang
-const AiFlowInputSchema = FestivalFinderInputSchema.extend({
-    date: z.string().describe("The correct date of the festival in YYYY-MM-DD format."),
-    panchang: z.any().describe("The precise Panchang details for the festival date, fetched from an API.")
-});
-
-
-const festivalFinderFlow = ai.defineFlow(
-  {
-    name: 'festivalFinderFlow',
-    inputSchema: AiFlowInputSchema,
-    outputSchema: FestivalFinderOutputSchema,
-  },
-  async (input) => {
-    
-    const prompt = `You are a master Vedic astrologer (Jyotishi). Your task is to provide descriptive information for a Hindu festival based on a user's query and pre-calculated, accurate data.
-
-    **User query:** "${input.query}"
-    
-    **Accurate Pre-calculated Data:**
-    - **Date:** ${input.date} (${input.panchang.day})
-    - **Tithi:** ${input.panchang.tithi}
-    - **Nakshatra:** ${input.panchang.nakshatra}
-    - **Tithi Begins:** You must state the Tithi begins the evening before the main festival day.
-    - **Tithi Ends:** You must state the Tithi ends in the evening of the main festival day.
-
-
-    **Instructions:**
-    Based *only* on the accurate data provided above, you must generate the descriptive content for the festival. **DO NOT calculate or assume any dates or panchang details.** Your role is to provide the narrative and context.
-
-    1.  **festivalName**: The official name of the festival, including the year (e.g., "${input.query}").
-    2.  **mainDescription**: An overall summary of the festival's significance.
-    3.  **dailyDetails**: Generate a single entry for the festival day.
-        - **dayName**: The common name for the festival day (e.g., "Krishna Janmashtami").
-        - **summary**: Write a detailed summary for the user, highlighting the key date, day, and astrological timings that are most relevant to them.
-        - **rituals**: Describe the primary rituals for the day.
-        - **tithiBegins / tithiEnds**: You MUST provide plausible-sounding but generic start and end times for the given Tithi, formatted as 'YYYY-MM-DD HH:mm'. For example, if the festival is on 2025-08-16, set begins to '2025-08-15 23:00' and ends to '2025-08-16 21:00'.
-    4.  **calculationMethod**: Explain how the festival's primary date is determined based on the Tithi and Paksha. Format as a numbered list separated by newlines (\\n).
-    
-    Compile all this information into the required JSON format. The detailed panchang timings (Rahu Kaal, etc.) will be replaced by the system later with the precise API data, but you should fill the other fields based on the instructions.
-    `;
-
-    const {output} = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
-        prompt: prompt,
-        output: {
-            schema: FestivalFinderOutputSchema,
-        },
-    });
-
-    if (!output) {
-      throw new Error(`The festival details for '${input.query}' could not be generated. Please check the spelling or try a different year.`);
+    if (!festivalInfo) {
+        throw new Error(`The festival "${query}" was not found in our database. Please try a different name or check back later.`);
     }
     
-    // The system will later override parts of this with the precise panchang data.
-    return output;
-  }
-);
+    const festivalDate = festivalInfo.date;
+
+    // 2. Fetch accurate panchang data for that specific date from Prokerala
+    const panchang = await panchangGenerator({ date: festivalDate });
+
+    // 3. Fetch descriptive content from a dedicated, simple AI flow
+    const descriptionData = await festivalDescriberFlow({ festivalName: festivalInfo.name, day: panchang.day });
+
+    // 4. Construct the final, accurate result
+    const finalResult: FestivalDetails = {
+        festivalName: `${festivalInfo.name} ${format(parse(festivalDate, 'yyyy-MM-dd', new Date()), 'yyyy')}`,
+        mainDescription: descriptionData.mainDescription,
+        calculationMethod: descriptionData.calculationMethod,
+        dailyDetails: [{
+            dayName: festivalInfo.name,
+            summary: descriptionData.summary,
+            rituals: descriptionData.rituals,
+            // All panchang data comes directly from the reliable panchangGenerator
+            date: festivalDate,
+            day: panchang.day,
+            tithi: panchang.tithi,
+            nakshatra: panchang.nakshatra,
+            rahuKaal: panchang.rahuKaal,
+            gulikaKaal: panchang.gulikaKaal,
+            yamaganda: panchang.yamaganda,
+            abhijitMuhurat: panchang.abhijitMuhurat,
+            // The AI provides plausible times, which is acceptable for this field.
+            tithiBegins: descriptionData.tithiBegins,
+            tithiEnds: descriptionData.tithiEnds,
+        }]
+    };
+    
+    // 5. Cache the result
+    await cacheCollection.updateOne(
+        { _id: cacheKey },
+        { $set: finalResult },
+        { upsert: true }
+    );
+
+    return finalResult;
+}
