@@ -3,9 +3,10 @@
 
 /**
  * @fileOverview An AI agent for finding festival details.
- * This agent calculates festival dates based on traditional astrological rules,
- * prioritizing a local database of known dates for accuracy.
- * It now uses MongoDB for persistent caching to improve performance.
+ * This agent now uses a hybrid approach:
+ * 1. AI determines the start/end dates and provides rich descriptions.
+ * 2. It then fetches precise daily panchang data from the Prokerala-powered
+ *    panchangGenerator for each day of the festival to ensure accuracy.
  *
  * - festivalFinder - A function that handles the festival finding process.
  * - FestivalFinderInput - The input type for the festivalFinder function.
@@ -17,21 +18,12 @@ import {z} from 'genkit';
 import { FestivalFinderInputSchema, FestivalFinderOutputSchema } from '@/lib/types';
 import type { FestivalFinderInput, FestivalDetails } from '@/lib/types';
 import { connectToDatabase } from '@/lib/mongodb';
-
-// Helper function to parse year from query.
-const getYearFromQuery = (query: string): number | null => {
-    const match = query.match(/\d{4}/);
-    return match ? parseInt(match[0], 10) : null;
-};
-
-// Helper function to parse festival name from query.
-const getFestivalNameFromQuery = (query: string): string => {
-    return query.replace(/\d{4}/, '').trim().toLowerCase();
-};
+import { panchangGenerator } from './panchang-generator';
+import { eachDayOfInterval, parse, format } from 'date-fns';
 
 export async function festivalFinder(input: FestivalFinderInput): Promise<FestivalDetails> {
   const { db } = await connectToDatabase();
-  const cacheKey = input.query.toLowerCase().trim();
+  const cacheKey = `festival_v2_${input.query.toLowerCase().trim()}`;
   const cacheCollection = db.collection('festival_cache');
 
   // 1. Check for a valid cache entry in MongoDB
@@ -41,76 +33,109 @@ export async function festivalFinder(input: FestivalFinderInput): Promise<Festiv
     return festivalData as FestivalDetails;
   }
   
-  // 2. If not in cache, call the AI flow
-  const result = await festivalFinderFlow(input);
+  // 2. If not in cache, call the AI flow to get date range and descriptions
+  const aiResult = await festivalFinderFlow(input);
 
-  // 3. Store the new result in the MongoDB cache for future requests
+  // 3. For each day in the date range, fetch accurate panchang data
+  const startDate = parse(aiResult.startDate, 'yyyy-MM-dd', new Date());
+  const endDate = parse(aiResult.endDate, 'yyyy-MM-dd', new Date());
+  const festivalDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const dailyDetails = await Promise.all(
+      festivalDays.map(async (day, index) => {
+          const dateString = format(day, 'yyyy-MM-dd');
+          const panchang = await panchangGenerator({ date: dateString });
+          const aiDayDetail = aiResult.dailyDetails[index] || aiResult.dailyDetails[0];
+
+          return {
+              dayName: aiDayDetail.dayName,
+              date: dateString,
+              day: panchang.day,
+              summary: aiDayDetail.summary.replace('YYYY-MM-DD', dateString), // Ensure date is correct
+              tithi: panchang.tithi,
+              nakshatra: panchang.nakshatra,
+              // Use AI for tithi timings as panchang doesn't provide it
+              tithiBegins: aiDayDetail.tithiBegins,
+              tithiEnds: aiDayDetail.tithiEnds, 
+              rituals: aiDayDetail.rituals,
+              rahuKaal: panchang.rahuKaal,
+              gulikaKaal: panchang.gulikaKaal,
+              yamaganda: panchang.yamaganda,
+              abhijitMuhurat: panchang.abhijitMuhurat,
+          };
+      })
+  );
+
+  const finalResult: FestivalDetails = {
+      festivalName: aiResult.festivalName,
+      mainDescription: aiResult.mainDescription,
+      calculationMethod: aiResult.calculationMethod,
+      dailyDetails: dailyDetails,
+  };
+
+
+  // 4. Store the new, combined result in the MongoDB cache
   await cacheCollection.updateOne(
     { _id: cacheKey },
-    { $set: result },
+    { $set: finalResult },
     { upsert: true }
   );
   
-  return result;
+  return finalResult;
 }
+
+// This schema is for the AI's intermediate output
+const FestivalAiOutputSchema = FestivalFinderOutputSchema.extend({
+    startDate: z.string().describe("The start date of the festival in YYYY-MM-DD format."),
+    endDate: z.string().describe("The end date of the festival in YYYY-MM-DD format. For single day festivals, this will be the same as the start date."),
+});
 
 
 const festivalFinderFlow = ai.defineFlow(
   {
     name: 'festivalFinderFlow',
     inputSchema: FestivalFinderInputSchema,
-    outputSchema: FestivalFinderOutputSchema,
+    outputSchema: FestivalAiOutputSchema,
   },
   async (input) => {
     
-    const prompt = `You are a master Vedic astrologer (Jyotishi) and cultural historian. Your purpose is to provide accurate details about Hindu festivals. You MUST follow the Drik Ganita system and use the Lahiri Ayanamsa for all calculations. The location for all timing calculations is 'New Delhi, India' unless specified otherwise.
-    
-    **CRITICAL INSTRUCTION**: If the user provides a specific date in their query, you MUST use that date as the primary reference. Your task is to find the full Panchang details for that given date or festival. Do NOT try to find a different date.
+    const prompt = `You are a master Vedic astrologer (Jyotishi). Your task is to provide descriptive information and key dates for a Hindu festival based on a user's query. You MUST NOT provide detailed panchang timings (like Rahu Kaal, etc.) as that will be fetched from a precise API later.
 
     User query: "${input.query}"
     
     **Instructions:**
 
-    **Step 1: Identify the Festival Type (Single vs. Multi-Day)**
-    - Analyze the user's query. Determine if it's a single-day festival (e.g., Diwali, Maha Shivratri) or a multi-day festival (e.g., Durga Puja, Chhath Puja, Navratri).
-    - Your 'festivalName' output MUST include the year (e.g., "Durga Puja 2025"). If no year is specified by the user, assume the current or next upcoming instance of the festival.
-    - Provide an overall 'mainDescription' for the festival.
-
-    **Step 2: Calculate Panchang Details for Each Day**
-    - **For Multi-Day Festivals:** You must generate a separate entry in the 'dailyDetails' array for each significant day of the festival.
-        - For Durga Puja, this includes Shasthi, Saptami, Ashtami, Navami, and Vijayadashami.
-        - For Chhath Puja, this includes Nahay Khay, Kharna, Sandhya Arghya, and Usha Arghya.
-        - For each day, you MUST calculate the full panchang details: date, day of the week, Tithi (with start/end times), Nakshatra, and all auspicious/inauspicious timings (Rahu Kaal, Gulika Kaal, Yamaganda, Abhijit Muhurat).
-    - **For Single-Day Festivals:** The 'dailyDetails' array will contain only one item with the full panchang details for that day.
+    **Step 1: Determine Festival Dates**
+    - Based on the user's query, determine the exact START DATE and END DATE of the festival for the specified year.
+    - If no year is specified, assume the current or next upcoming instance.
+    - You MUST output these dates in the 'startDate' and 'endDate' fields in YYYY-MM-DD format.
     
-    **Step 3: Provide Rich Context and Summaries for Each Day**
-    - For each item in 'dailyDetails':
-        - **dayName:** Provide the specific name for that day (e.g., "Maha Ashtami", "Day 1: Nahay Khay", or just the festival name for single-day events).
-        - **summary:** Create a user-friendly summary for THAT specific day, highlighting the date, day, and the key timing that makes it significant.
-        - **rituals:** Describe the primary rituals and customs observed on THAT specific day.
+    **Step 2: Generate Descriptive Content**
+    - **festivalName**: The official name of the festival, including the year (e.g., "Durga Puja 2025").
+    - **mainDescription**: An overall summary of the festival's significance.
+    - **dailyDetails**: Generate an entry for EACH significant day of the festival.
+        - For each day, provide the 'dayName' (e.g., "Maha Ashtami") and a 'summary' of its importance.
+        - **Crucially**, in the summary for each day, use 'YYYY-MM-DD' as a placeholder for the date. The final system will insert the correct date.
+        - Describe the primary 'rituals' for that day.
+        - Provide the 'tithi' name and approximate 'tithiBegins' and 'tithiEnds' times in 'YYYY-MM-DD HH:mm' format (using placeholder date).
+        - **DO NOT** include Nakshatra, Rahu Kaal, Gulika Kaal, or other detailed panchang elements. They will be replaced by an accurate API call.
 
-    **Step 4: Explain the Core Calculation Method**
-    - In the 'calculationMethod' field, explain how you determined the festival's primary date or start date.
-    - The explanation MUST be formatted as a numbered list within a single string, with each step separated by a newline character (\\n).
-    - Example for a Tithi-based festival: 
-        1. State the core rule (e.g., "Durga Puja starts with the Pratipada Tithi of Ashwin Shukla Paksha.").
-        2. Provide the key Tithi start and end timings.
-        3. Conclude with how these rules lead to the specific start date you calculated.
-
-    **Step 5: Format the Final Output**
-    - Compile all the gathered information into the required JSON output format. Ensure all fields are populated accurately. If you cannot determine a date, throw an error.
+    **Step 3: Explain Calculation Method**
+    - In the 'calculationMethod' field, explain how you determined the festival's primary date or start date. Focus on the core astrological rule (e.g., the Tithi and Paksha). Format as a numbered list separated by newlines (\\n).
+    
+    Compile all this information into the required JSON format.
     `;
 
     const {output} = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: prompt,
         output: {
-            schema: FestivalFinderOutputSchema,
+            schema: FestivalAiOutputSchema,
         },
     });
 
     if (!output) {
-      throw new Error(`The festival details for '${input.query}' could not be calculated. Please check the spelling or try a different year.`);
+      throw new Error(`The festival details for '${input.query}' could not be generated. Please check the spelling or try a different year.`);
     }
     
     return output;
