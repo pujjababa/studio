@@ -10,7 +10,6 @@
  * - festivalDetails - A new function that orchestrates the data gathering.
  */
 import { panchangGenerator } from './panchang-generator';
-import { festivalDescriberFlow } from './festival-describer';
 import { festivalDatabase } from '@/lib/festival-data';
 import type { FestivalDetails } from '@/lib/types';
 import { format, parse } from 'date-fns';
@@ -31,18 +30,16 @@ export async function festivalDetails(query: string): Promise<FestivalDetails> {
     // The panchang object now contains accurate tithi.start and tithi.end times.
     const panchang = await panchangGenerator({ date: festivalDate });
 
-    // 3. Fetch descriptive content from a dedicated, simple AI flow (no time generation)
-    const descriptionData = await festivalDescriberFlow({ festivalName: festivalInfo.name, day: panchang.day });
-
-    // 4. Construct the final, accurate result
+    // 3. Construct the final, accurate result from local data and panchang data. NO AI.
     const finalResult: FestivalDetails = {
         festivalName: `${festivalInfo.name} ${format(parse(festivalDate, 'yyyy-MM-dd', new Date()), 'yyyy')}`,
-        mainDescription: descriptionData.mainDescription,
-        calculationMethod: descriptionData.calculationMethod,
+        // All descriptive content comes directly from our local database
+        mainDescription: festivalInfo.mainDescription,
+        calculationMethod: festivalInfo.calculationMethod,
         dailyDetails: [{
             dayName: festivalInfo.name,
-            summary: descriptionData.summary,
-            rituals: descriptionData.rituals,
+            summary: festivalInfo.summary,
+            rituals: festivalInfo.rituals,
             // All panchang data comes directly from the reliable panchangGenerator
             date: festivalDate,
             day: panchang.day,
@@ -52,7 +49,6 @@ export async function festivalDetails(query: string): Promise<FestivalDetails> {
             gulikaKaal: panchang.gulikaKaal,
             yamaganda: panchang.yamaganda,
             abhijitMuhurat: panchang.abhijitMuhurat,
-            // **FIX**: These timings now come directly from the Prokerala response via the panchangGenerator
             tithiBegins: panchang.tithiStartTime,
             tithiEnds: panchang.tithiEndTime,
         }]

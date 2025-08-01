@@ -12,4 +12,3 @@ import '@/ai/flows/pandit-enquiry.ts';
 import '@/ai/flows/marriage-path-predictor.ts';
 import '@/ai/flows/festival-finder.ts';
 import '@/ai/flows/upcoming-festivals.ts';
-import '@/ai/flows/festival-describer.ts';
