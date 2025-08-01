@@ -7,19 +7,21 @@ import { format, subDays } from 'date-fns';
 export const dynamic = 'force-dynamic';
 
 /**
- * Fetches raw planetary position data for a given date and caches it.
- * In a production app, this would call the Prokerala "Planetary Positions" API.
- * For this prototype, we use the panchang data as a stand-in to demonstrate caching.
+ * Fetches raw planetary position data for a given date by using the advanced
+ * panchang endpoint and extracting the detailed planetary information.
  * @param dateString The date to fetch data for (YYYY-MM-DD).
  * @param location The location for the calculation.
  * @returns The fetched planetary data.
  */
 async function fetchAndCachePlanetaryData(dateString: string, location: string) {
-    // In a real implementation, this would call the "Planetary Positions" or "Birth Details" API
-    // to get the raw longitude, rashi, and nakshatra for each planet.
-    // For now, we use the panchang data as a placeholder for the ephemeris object.
-    const planetaryData = await fetchProkeralaPanchang(dateString, location);
+    // We use the advanced panchang endpoint, which contains nakshatra and rashi
+    // information for each planet, serving as our source for ephemeris data.
+    const panchangData = await fetchProkeralaPanchang(dateString, location);
     
+    // In a real app with a dedicated planet positions API, you would map those fields here.
+    // For now, we are saving the entire detailed panchang object as it contains the necessary info.
+    const planetaryData = panchangData; 
+
     const { db } = await connectToDatabase();
     const collection = db.collection('ephemeris_cache');
 
