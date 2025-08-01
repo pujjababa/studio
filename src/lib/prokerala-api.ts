@@ -10,11 +10,20 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 }
 
 const formatTime = (dateString: string) => {
-    return format(parseISO(dateString), 'h:mm a');
+    try {
+        return format(parseISO(dateString), 'h:mm a');
+    } catch {
+        return 'N/A';
+    }
 }
 
-const formatTiming = (timing: {start: string, end: string}) => {
-    return `${formatTime(timing.start)} - ${formatTime(timing.end)}`;
+const formatTiming = (timing?: {start: string, end: string}) => {
+    if (!timing) return 'N/A';
+    try {
+        return `${formatTime(timing.start)} - ${formatTime(timing.end)}`;
+    } catch {
+        return 'N/A';
+    }
 }
 
 
@@ -53,21 +62,27 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         const data = await response.json();
         const panchang = data.data;
 
+        // The API returns arrays for tithi, nakshatra, etc. We'll take the first one as primary.
+        const currentTithi = panchang.tithi[0];
+        const currentNakshatra = panchang.nakshatra[0];
+        const currentYoga = panchang.yoga[0];
+        const currentKarana = panchang.karana[0];
+
         return {
             date: dateString,
-            day: panchang.day,
-            tithi: panchang.tithi.name,
-            nakshatra: panchang.nakshatra.name,
-            yoga: panchang.yoga.name,
-            karana: panchang.karana.name,
+            day: panchang.vaara,
+            tithi: currentTithi.name,
+            nakshatra: currentNakshatra.name,
+            yoga: currentYoga.name,
+            karana: currentKarana.name,
             sunrise: formatTime(panchang.sunrise),
             sunset: formatTime(panchang.sunset),
-            paksha: panchang.paksha,
-            rahuKaal: formatTiming(panchang.timings.rahu_kaal),
-            gulikaKaal: formatTiming(panchang.timings.gulika_kaal),
-            yamaganda: formatTiming(panchang.timings.yamaganda),
-            abhijitMuhurat: formatTiming(panchang.timings.abhijit_muhurta),
-            festival: panchang.festivals.length > 0 ? panchang.festivals.join(', ') : undefined,
+            paksha: currentTithi.paksha,
+            rahuKaal: formatTiming(panchang.timings?.rahu_kaal),
+            gulikaKaal: formatTiming(panchang.timings?.gulika_kaal),
+            yamaganda: formatTiming(panchang.timings?.yamaganda),
+            abhijitMuhurat: formatTiming(panchang.timings?.abhijit_muhurta),
+            festival: panchang.festivals && panchang.festivals.length > 0 ? panchang.festivals.join(', ') : undefined,
         };
     } catch (error: any) {
          if (error.response) {
