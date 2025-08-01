@@ -17,13 +17,18 @@ const formatTime = (dateString: string) => {
     }
 }
 
-const formatTiming = (timing?: {start: string, end: string}) => {
+const formatTiming = (timing: {start: string, end: string}) => {
     if (!timing) return 'N/A';
     try {
         return `${formatTime(timing.start)} - ${formatTime(timing.end)}`;
     } catch {
         return 'N/A';
     }
+}
+
+const findTiming = (periods: {id: string, name: string, start: string, end: string}[], name: string) => {
+    const period = periods.find(p => p.name.toLowerCase().includes(name.toLowerCase()));
+    return period ? formatTiming(period) : 'N/A';
 }
 
 
@@ -49,8 +54,8 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         const coordinates = '28.6139,77.2090'; // Hardcoded for New Delhi for now
         const datetime = `${dateString}T12:00:00Z`;
 
-        // Step 2: Fetch Panchang data using the token
-        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang?ayanamsa=1&coordinates=${coordinates}&datetime=${datetime}`, {
+        // Step 2: Fetch Panchang data using the token from the advanced endpoint
+        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang/advanced?ayanamsa=1&coordinates=${coordinates}&datetime=${datetime}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${access_token}`
@@ -70,6 +75,9 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         const currentNakshatra = panchang.nakshatra[0];
         const currentYoga = panchang.yoga[0];
         const currentKarana = panchang.karana[0];
+        
+        const inauspiciousPeriods = panchang.inauspicious_period || [];
+        const auspiciousPeriods = panchang.auspicious_period || [];
 
         return {
             date: dateString,
@@ -81,10 +89,10 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
             sunrise: formatTime(panchang.sunrise),
             sunset: formatTime(panchang.sunset),
             paksha: currentTithi.paksha,
-            rahuKaal: formatTiming(panchang.timings?.rahu_kaal),
-            gulikaKaal: formatTiming(panchang.timings?.gulika_kaal),
-            yamaganda: formatTiming(panchang.timings?.yamaganda),
-            abhijitMuhurat: formatTiming(panchang.timings?.abhijit_muhurta),
+            rahuKaal: findTiming(inauspiciousPeriods, 'Rahu Kaal'),
+            gulikaKaal: findTiming(auspiciousPeriods, 'Gulika Kaal'), // Gulika can be auspicious
+            yamaganda: findTiming(inauspiciousPeriods, 'Yamaganda'),
+            abhijitMuhurat: findTiming(auspiciousPeriods, 'Abhijit Muhurta'),
             festival: panchang.festivals && panchang.festivals.length > 0 ? panchang.festivals.join(', ') : undefined,
         };
     } catch (error: any) {
