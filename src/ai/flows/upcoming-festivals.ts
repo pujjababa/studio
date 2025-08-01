@@ -3,14 +3,16 @@
 
 /**
  * @fileOverview An AI agent for finding a list of upcoming festivals.
+ * This flow now caches its results in MongoDB to be used by the application.
  *
- * - upcomingFestivals - A function that returns a list of the next 5 major festivals.
+ * - upcomingFestivals - A function that returns a list of the next 5 major festivals from cache or generates them.
  * - UpcomingFestival - The type for a single upcoming festival.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { format } from 'date-fns';
+import { connectToDatabase } from '@/lib/mongodb';
 
 const UpcomingFestivalSchema = z.object({
   name: z.string().describe("The official name of the festival."),
@@ -23,14 +25,28 @@ const UpcomingFestivalsOutputSchema = z.object({
     festivals: z.array(UpcomingFestivalSchema).length(5).describe("A list of exactly 5 upcoming major Hindu festivals."),
 });
 
-// Main exported function
+const CACHE_KEY = 'latest';
+
+// Main exported function for the frontend to use.
+// It tries to get data from cache first, and falls back to generating it live if cache is empty.
 export async function upcomingFestivals(): Promise<UpcomingFestival[]> {
-  const result = await upcomingFestivalsFlow();
-  return result.festivals;
+    const { db } = await connectToDatabase();
+    const cacheCollection = db.collection('upcoming_festivals_cache');
+    const cachedData = await cacheCollection.findOne({ _id: CACHE_KEY });
+
+    if (cachedData && cachedData.festivals) {
+        return cachedData.festivals as UpcomingFestival[];
+    }
+    
+    // If cache is empty, run the flow to generate and return the data live.
+    // The flow itself will also cache the result for the next time.
+    const result = await upcomingFestivalsFlow();
+    return result.festivals;
 }
 
-// The Genkit flow
-const upcomingFestivalsFlow = ai.defineFlow(
+// The Genkit flow, typically called by the cron job.
+// It always fetches fresh data and updates the cache.
+export const upcomingFestivalsFlow = ai.defineFlow(
   {
     name: 'upcomingFestivalsFlow',
     inputSchema: z.void(),
@@ -59,6 +75,15 @@ const upcomingFestivalsFlow = ai.defineFlow(
     if (!output) {
       throw new Error('Could not retrieve upcoming festivals at this time.');
     }
+    
+    // Cache the newly generated result in MongoDB
+    const { db } = await connectToDatabase();
+    const cacheCollection = db.collection('upcoming_festivals_cache');
+    await cacheCollection.updateOne(
+        { _id: CACHE_KEY },
+        { $set: output },
+        { upsert: true }
+    );
     
     return output;
   }
