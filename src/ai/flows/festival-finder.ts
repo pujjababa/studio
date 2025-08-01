@@ -12,20 +12,20 @@ import { panchangGenerator } from './panchang-generator';
 import { festivalDescriberFlow } from './festival-describer';
 import { festivalDatabase } from '@/lib/festival-data';
 import type { FestivalDetails } from '@/lib/types';
-import { connectToDatabase } from '@/lib/mongodb';
+// import { connectToDatabase } from '@/lib/mongodb';
 import { format, parse } from 'date-fns';
 
 export async function festivalDetails(query: string): Promise<FestivalDetails> {
-    const { db } = await connectToDatabase();
+    // const { db } = await connectToDatabase();
     const normalizedQuery = query.toLowerCase().trim();
-    const cacheKey = `festival_details_v4_${normalizedQuery}`;
-    const cacheCollection = db.collection('festival_cache');
+    // const cacheKey = `festival_details_v4_${normalizedQuery}`;
+    // const cacheCollection = db.collection('festival_cache');
 
-    const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-    if (cachedData) {
-        const { _id, ...festivalData } = cachedData;
-        return festivalData as FestivalDetails;
-    }
+    // const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+    // if (cachedData) {
+    //     const { _id, ...festivalData } = cachedData;
+    //     return festivalData as FestivalDetails;
+    // }
 
     // 1. Find the festival date from our reliable local database
     const festivalInfo = festivalDatabase.find(f => normalizedQuery.includes(f.name.toLowerCase()));
@@ -67,11 +67,11 @@ export async function festivalDetails(query: string): Promise<FestivalDetails> {
     };
     
     // 5. Cache the result
-    await cacheCollection.updateOne(
-        { _id: cacheKey },
-        { $set: finalResult },
-        { upsert: true }
-    );
+    // await cacheCollection.updateOne(
+    //     { _id: cacheKey },
+    //     { $set: finalResult },
+    //     { upsert: true }
+    // );
 
     return finalResult;
 }

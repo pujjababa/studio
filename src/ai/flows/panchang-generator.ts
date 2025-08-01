@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod';
-import { connectToDatabase } from '@/lib/mongodb';
+// import { connectToDatabase } from '@/lib/mongodb';
 import { fetchProkeralaPanchang } from '@/lib/prokerala-api';
 import type { PanchangResult } from '@/lib/types';
 
@@ -24,27 +24,27 @@ export type PanchangGeneratorInput = z.infer<typeof PanchangGeneratorInputSchema
 
 
 export async function panchangGenerator(input: PanchangGeneratorInput): Promise<PanchangResult> {
-  const { db } = await connectToDatabase();
-  const cacheKey = `${input.date}-${input.location || 'default'}`;
-  const cacheCollection = db.collection('panchang_cache');
+  // const { db } = await connectToDatabase();
+  // const cacheKey = `${input.date}-${input.location || 'default'}`;
+  // const cacheCollection = db.collection('panchang_cache');
 
-  // 1. Check for a valid cache entry in MongoDB
-  const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-  if (cachedData) {
-    // Make sure to remove the MongoDB `_id` field before returning
-    const { _id, ...panchangData } = cachedData;
-    return panchangData as PanchangResult;
-  }
+  // // 1. Check for a valid cache entry in MongoDB
+  // const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+  // if (cachedData) {
+  //   // Make sure to remove the MongoDB `_id` field before returning
+  //   const { _id, ...panchangData } = cachedData;
+  //   return panchangData as PanchangResult;
+  // }
 
   // 2. Fetch data from ProKerala API if not in cache
   const apiData = await fetchProkeralaPanchang(input.date, input.location);
 
   // 3. Store the new result in the MongoDB cache for future requests
-  await cacheCollection.updateOne(
-    { _id: cacheKey },
-    { $set: apiData },
-    { upsert: true }
-  );
+  // await cacheCollection.updateOne(
+  //   { _id: cacheKey },
+  //   { $set: apiData },
+  //   { upsert: true }
+  // );
 
   return apiData;
 }

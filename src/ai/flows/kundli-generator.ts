@@ -132,16 +132,16 @@ async function lookupPlanetaryDataFromCache(date: string): Promise<DailyEphemeri
 
 
 export async function kundliGenerator(input: KundliGeneratorInput): Promise<KundliGeneratorOutput> {
-  const { db } = await connectToDatabase();
-  const cacheKey = JSON.stringify(input);
-  const cacheCollection = db.collection('kundli_cache');
+  // const { db } = await connectToDatabase();
+  // const cacheKey = JSON.stringify(input);
+  // const cacheCollection = db.collection('kundli_cache');
 
-  // 1. Check for a valid cache entry in MongoDB
-  const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-  if (cachedData) {
-    const { _id, ...kundliData } = cachedData;
-    return kundliData as KundliGeneratorOutput;
-  }
+  // // 1. Check for a valid cache entry in MongoDB
+  // const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+  // if (cachedData) {
+  //   const { _id, ...kundliData } = cachedData;
+  //   return kundliData as KundliGeneratorOutput;
+  // }
   
   // Step 2: Perform local, precise calculations using pre-computed data from cache
   const planetaryData = await lookupPlanetaryDataFromCache(input.dateOfBirth);
@@ -195,11 +195,11 @@ export async function kundliGenerator(input: KundliGeneratorInput): Promise<Kund
   };
 
   // Step 5: Store the new result in the MongoDB cache
-  await cacheCollection.updateOne(
-    { _id: cacheKey },
-    { $set: finalResult },
-    { upsert: true }
-  );
+  // await cacheCollection.updateOne(
+  //   { _id: cacheKey },
+  //   { $set: finalResult },
+  //   { upsert: true }
+  // );
 
   return finalResult;
 }

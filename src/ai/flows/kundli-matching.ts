@@ -122,16 +122,16 @@ async function lookupPlanetaryDataFromCache(date: string): Promise<DailyEphemeri
 }
 
 export async function kundliMatching(input: KundliMatchingInput): Promise<KundliMatchingResult> {
-    const { db } = await connectToDatabase();
-    const cacheKey = JSON.stringify(input);
-    const cacheCollection = db.collection('kundli_matching_cache');
+    // const { db } = await connectToDatabase();
+    // const cacheKey = JSON.stringify(input);
+    // const cacheCollection = db.collection('kundli_matching_cache');
 
-    // 1. Check for a valid cache entry in MongoDB
-    const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-    if (cachedData) {
-        const { _id, ...matchingData } = cachedData;
-        return matchingData as KundliMatchingResult;
-    }
+    // // 1. Check for a valid cache entry in MongoDB
+    // const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+    // if (cachedData) {
+    //     const { _id, ...matchingData } = cachedData;
+    //     return matchingData as KundliMatchingResult;
+    // }
 
     // Step 2: Look up planetary data from the cache.
     const boyData = await lookupPlanetaryDataFromCache(input.boyDetails.dateOfBirth);
@@ -163,11 +163,11 @@ export async function kundliMatching(input: KundliMatchingInput): Promise<Kundli
     const result = await kundliMatchingFlow(internalInput);
 
     // Step 5: Store the new result in the MongoDB cache
-    await cacheCollection.updateOne(
-        { _id: cacheKey },
-        { $set: result },
-        { upsert: true }
-    );
+    // await cacheCollection.updateOne(
+    //     { _id: cacheKey },
+    //     { $set: result },
+    //     { upsert: true }
+    // );
 
     return result;
 }
