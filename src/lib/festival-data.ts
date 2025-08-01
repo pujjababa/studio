@@ -16,6 +16,7 @@ export interface FestivalData {
 export const festivalDatabase: FestivalData[] = [
     // 2024
     { name: 'Raksha Bandhan', date: '2024-08-19'},
+    { name: 'Krishna Janmashtami', date: '2024-08-26' },
     { name: 'Janmashtami', date: '2024-08-26' },
     { name: 'Ganesh Chaturthi', date: '2024-09-07' },
     { name: 'Navratri', date: '2024-10-03' },
