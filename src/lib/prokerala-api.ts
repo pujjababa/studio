@@ -1,5 +1,6 @@
 
-import { format, parseISO, formatInTimeZone } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { PanchangResult } from './types';
 
 const CLIENT_ID = process.env.PROKERALA_CLIENT_ID;
