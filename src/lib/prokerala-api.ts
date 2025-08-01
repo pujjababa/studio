@@ -1,6 +1,6 @@
 
 import { format, parseISO } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
+import { formatInTimeZone, toDate } from 'date-fns-tz';
 import type { PanchangResult } from './types';
 
 const CLIENT_ID = process.env.PROKERALA_CLIENT_ID;
@@ -14,7 +14,8 @@ const formatTime = (dateString: string) => {
     try {
         // The API returns ISO strings, so parseISO is appropriate here.
         // We then format it into a more readable time format.
-        return format(parseISO(dateString), 'h:mm a');
+        const date = toDate(dateString);
+        return format(date, 'h:mm a');
     } catch {
         return 'N/A';
     }
@@ -60,7 +61,7 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         const tz = 'Asia/Kolkata'; // Timezone for New Delhi
         
         // Format the date into a full ISO string with timezone for the API request
-        const inputDate = parseISO(`${dateString}T12:00:00`);
+        const inputDate = toDate(`${dateString}T12:00:00`, {timeZone: tz});
         const zonedDate = formatInTimeZone(inputDate, tz, "yyyy-MM-dd'T'HH:mm:ssXXX");
 
         const encodedDateTime = encodeURIComponent(zonedDate);
