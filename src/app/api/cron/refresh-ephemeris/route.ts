@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { fetchProkeralaPanchang } from '@/lib/prokerala-api';
 import { format, subDays } from 'date-fns';
+import { config } from 'dotenv';
+
+config(); // Load environment variables from .env file
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +48,7 @@ export async function GET() {
 
     // For this prototype, we will fetch and update data for the past 3 days
     // to demonstrate the concept without using excessive API quota.
-    const results: { [key: string]: { success: boolean; message: string; } } = {};
+    const results: { [key: string]: { success: boolean; message: string; error?: string } } = {};
     
     for (let i = 0; i < 3; i++) {
         const dateToFetch = subDays(new Date(), i);
@@ -60,7 +63,8 @@ export async function GET() {
         } catch (error: any) {
              results[dateString] = {
                 success: false,
-                message: `Failed to refresh ephemeris for ${dateString}: ${error.message}`
+                message: `Failed to refresh ephemeris for ${dateString}.`,
+                error: error.message || 'Unknown error',
             };
             console.error(`Ephemeris refresh error for ${dateString}:`, error);
         }

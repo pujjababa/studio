@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { upcomingFestivalsFlow } from '@/ai/flows/upcoming-festivals';
 import { panchangGenerator } from '@/ai/flows/panchang-generator';
 import { format } from 'date-fns';
+import { config } from 'dotenv';
+
+config(); // Load environment variables from .env file
 
 export const dynamic = 'force-dynamic'; // an API route that is not cached
 
@@ -12,7 +15,7 @@ export const dynamic = 'force-dynamic'; // an API route that is not cached
  * such as the list of upcoming festivals and today's panchang.
  */
 export async function GET() {
-  const results: { [key: string]: { success: boolean; message: string; data?: any } } = {};
+  const results: { [key: string]: { success: boolean; message: string; data?: any; error?: string } } = {};
   
   try {
     // 1. Refresh and cache upcoming festivals
@@ -25,23 +28,26 @@ export async function GET() {
   } catch (error: any) {
     results['upcoming_festivals'] = {
         success: false,
-        message: `Failed to refresh upcoming festivals: ${error.message}`
+        message: `Failed to refresh upcoming festivals.`,
+        error: error.message || 'Unknown error',
     };
   }
 
   try {
     // 2. Refresh and cache today's panchang
     const today = format(new Date(), 'yyyy-MM-dd');
-    await panchangGenerator({ date: today });
+    const panchangData = await panchangGenerator({ date: today });
      results['todays_panchang'] = {
         success: true,
-        message: 'Successfully refreshed and cached panchang for today.'
+        message: `Successfully refreshed and cached panchang for ${today}.`,
+        data: { sunrise: panchangData.sunrise, sunset: panchangData.sunset }
     };
   } catch (error: any)
   {
      results['todays_panchang'] = {
         success: false,
-        message: `Failed to refresh today's panchang: ${error.message}`
+        message: `Failed to refresh today's panchang.`,
+        error: error.message || 'Unknown error',
     };
   }
 
