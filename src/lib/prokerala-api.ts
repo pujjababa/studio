@@ -2,8 +2,8 @@ import { format } from 'date-fns';
 import type { PanchangResult } from './types';
 
 const API_URL = 'https://api.prokerala.com/v2/astrology/panchang';
-const CLIENT_ID = '1c55492d-e2ba-4a2d-bce1-4e3b51798e70';
-const CLIENT_SECRET = 'T13fgxXSVdebazgvobuvymi2qRhYHyPsUOgDPXD3';
+const CLIENT_ID = process.env.PROKERALA_CLIENT_ID;
+const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET;
 
 // Helper to format time from API
 const formatTime = (time: {hour: number, minute: number, second: number}) => {
@@ -19,6 +19,10 @@ const formatTiming = (timing: {start: {hour: number, minute: number, second: num
 
 
 export async function fetchProkeralaPanchang(date: string, location: string = 'New Delhi, India'): Promise<PanchangResult> {
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+        throw new Error('ProKerala API credentials are not configured in the environment variables.');
+    }
+
     const coordinates = '28.6139,77.2090'; // Default to New Delhi
 
     const response = await fetch(API_URL, {
