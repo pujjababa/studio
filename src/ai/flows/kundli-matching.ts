@@ -12,8 +12,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { lookupPlanetaryData } from '@/lib/astrology-lookup';
 import { connectToDatabase } from '@/lib/mongodb';
+import type { DailyEphemeris } from '@/lib/ephemeris-data';
 
 const BirthDetailsSchema = z.object({
   name: z.string().describe("The person's name."),
@@ -88,6 +88,39 @@ const KundliMatchingResultSchema = z.object({
 });
 export type KundliMatchingResult = z.infer<typeof KundliMatchingResultSchema>;
 
+
+/**
+ * Looks up planetary data from the MongoDB cache.
+ * @param date The date string in "YYYY-MM-DD" format.
+ * @returns The planetary data for that date, or null if not found.
+ */
+async function lookupPlanetaryDataFromCache(date: string): Promise<DailyEphemeris | null> {
+    const { db } = await connectToDatabase();
+    const collection = db.collection('ephemeris_cache');
+    const result = await collection.findOne({ _id: date });
+
+    if (result && result.data) {
+        const ephemeris: DailyEphemeris = {};
+        const planets = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu'];
+
+        planets.forEach(planet => {
+            const nakshatraDetails = result.data.nakshatra?.find((n: any) => n.planet.toLowerCase() === planet.toLowerCase());
+            if (nakshatraDetails) {
+                 ephemeris[planet] = {
+                    rashi: nakshatraDetails.rashi.name,
+                    nakshatra: nakshatraDetails.name,
+                    nakshatraPada: nakshatraDetails.pada,
+                    longitude: nakshatraDetails.longitude,
+                };
+            }
+        });
+        
+        if (Object.keys(ephemeris).length > 0) return ephemeris;
+    }
+    console.warn(`No ephemeris data in cache for ${date}.`);
+    return null;
+}
+
 export async function kundliMatching(input: KundliMatchingInput): Promise<KundliMatchingResult> {
     const { db } = await connectToDatabase();
     const cacheKey = JSON.stringify(input);
@@ -100,12 +133,12 @@ export async function kundliMatching(input: KundliMatchingInput): Promise<Kundli
         return matchingData as KundliMatchingResult;
     }
 
-    // Step 2: Look up pre-computed planetary data for boy and girl.
-    const boyData = lookupPlanetaryData(input.boyDetails.dateOfBirth);
-    const girlData = lookupPlanetaryData(input.girlDetails.dateOfBirth);
+    // Step 2: Look up planetary data from the cache.
+    const boyData = await lookupPlanetaryDataFromCache(input.boyDetails.dateOfBirth);
+    const girlData = await lookupPlanetaryDataFromCache(input.girlDetails.dateOfBirth);
 
     if (!boyData || !girlData) {
-        throw new Error("Could not find planetary data for the given dates. Please ensure the date is within the supported range.");
+        throw new Error("Could not find planetary data for the given dates in the local cache. Please ensure the dates are within the supported range and the monthly data sync has run.");
     }
 
     // Step 3: Prepare the precise data for the AI.

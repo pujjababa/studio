@@ -16,7 +16,6 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { FestivalFinderInputSchema, FestivalFinderOutputSchema } from '@/lib/types';
 import type { FestivalFinderInput, FestivalDetails } from '@/lib/types';
-import { festivalDatabase } from '@/lib/festival-data';
 import { connectToDatabase } from '@/lib/mongodb';
 
 // Helper function to parse year from query.
@@ -31,33 +30,8 @@ const getFestivalNameFromQuery = (query: string): string => {
 };
 
 export async function festivalFinder(input: FestivalFinderInput): Promise<FestivalDetails> {
-  const year = getYearFromQuery(input.query);
-  const festivalName = getFestivalNameFromQuery(input.query);
-  let targetYear = year || new Date().getFullYear();
-
-  let dbMatch = festivalDatabase.find(f => {
-    const dbYear = new Date(f.date).getFullYear();
-    const dbName = f.name.toLowerCase();
-    return dbName.includes(festivalName) && dbYear === targetYear;
-  });
-
-  // If no year was specified, and the found festival date has already passed,
-  // try to find it for the next year.
-  if (!year && dbMatch && new Date(dbMatch.date) < new Date()) {
-      targetYear++; // Increment to next year
-      const nextYearMatch = festivalDatabase.find(f => {
-        const dbYear = new Date(f.date).getFullYear();
-        const dbName = f.name.toLowerCase();
-        return dbName.includes(festivalName) && dbYear === targetYear;
-      });
-      dbMatch = nextYearMatch; // Use the next year's match if found
-  }
-
-  // If there's a specific year in query, use it. Otherwise, use the determined targetYear.
-  const festivalQuery = year ? input.query : `${festivalName} ${targetYear}`;
-  
   const { db } = await connectToDatabase();
-  const cacheKey = festivalQuery;
+  const cacheKey = input.query.toLowerCase().trim();
   const cacheCollection = db.collection('festival_cache');
 
   // 1. Check for a valid cache entry in MongoDB
@@ -67,14 +41,10 @@ export async function festivalFinder(input: FestivalFinderInput): Promise<Festiv
     return festivalData as FestivalDetails;
   }
   
-  const queryForAI = dbMatch 
-    ? `Give me the details for the festival '${festivalName}' which occurs on ${dbMatch.date}.`
-    : `Calculate the details for the festival '${festivalQuery}'.`;
+  // 2. If not in cache, call the AI flow
+  const result = await festivalFinderFlow(input);
 
-
-  const result = await festivalFinderFlow({ query: queryForAI });
-
-  // Store the new result in the MongoDB cache for future requests
+  // 3. Store the new result in the MongoDB cache for future requests
   await cacheCollection.updateOne(
     { _id: cacheKey },
     { $set: result },
@@ -103,7 +73,7 @@ const festivalFinderFlow = ai.defineFlow(
 
     **Step 1: Identify the Festival Type (Single vs. Multi-Day)**
     - Analyze the user's query. Determine if it's a single-day festival (e.g., Diwali, Maha Shivratri) or a multi-day festival (e.g., Durga Puja, Chhath Puja, Navratri).
-    - Your 'festivalName' output MUST include the year (e.g., "Durga Puja 2025").
+    - Your 'festivalName' output MUST include the year (e.g., "Durga Puja 2025"). If no year is specified by the user, assume the current or next upcoming instance of the festival.
     - Provide an overall 'mainDescription' for the festival.
 
     **Step 2: Calculate Panchang Details for Each Day**

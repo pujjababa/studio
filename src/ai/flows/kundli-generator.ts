@@ -14,9 +14,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { lookupPlanetaryData } from '@/lib/astrology-lookup';
 import { getTithi, getNakshatra, getYoga, getKarana, getVara } from '@/lib/astrology-calculator';
 import { connectToDatabase } from '@/lib/mongodb';
+import type { DailyEphemeris } from '@/lib/ephemeris-data';
 
 
 const KundliGeneratorInputSchema = z.object({
@@ -93,6 +93,44 @@ const KundliGeneratorOutputSchema = z.object({
 });
 export type KundliGeneratorOutput = z.infer<typeof KundliGeneratorOutputSchema>;
 
+/**
+ * Looks up planetary data from the MongoDB cache.
+ * @param date The date string in "YYYY-MM-DD" format.
+ * @returns The planetary data for that date, or null if not found.
+ */
+async function lookupPlanetaryDataFromCache(date: string): Promise<DailyEphemeris | null> {
+    const { db } = await connectToDatabase();
+    const collection = db.collection('ephemeris_cache');
+    const result = await collection.findOne({ _id: date });
+
+    if (result && result.data) {
+        // The raw planetary data is stored in the 'data' field.
+        // For this flow, we will simulate the structure of DailyEphemeris.
+        // A more robust implementation would map the exact fields.
+        const ephemeris: DailyEphemeris = {};
+        const planets = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu'];
+
+        planets.forEach(planet => {
+            const nakshatraDetails = result.data.nakshatra?.find((n: any) => n.planet.toLowerCase() === planet.toLowerCase());
+            if (nakshatraDetails) {
+                 ephemeris[planet] = {
+                    rashi: nakshatraDetails.rashi.name,
+                    nakshatra: nakshatraDetails.name,
+                    nakshatraPada: nakshatraDetails.pada,
+                    longitude: nakshatraDetails.longitude,
+                };
+            }
+        });
+        
+        if (Object.keys(ephemeris).length > 0) return ephemeris;
+    }
+
+    // Fallback if data not in cache for some reason
+    console.warn(`No ephemeris data in cache for ${date}. This may cause inaccurate Kundli generation.`);
+    return null;
+}
+
+
 export async function kundliGenerator(input: KundliGeneratorInput): Promise<KundliGeneratorOutput> {
   const { db } = await connectToDatabase();
   const cacheKey = JSON.stringify(input);
@@ -105,10 +143,10 @@ export async function kundliGenerator(input: KundliGeneratorInput): Promise<Kund
     return kundliData as KundliGeneratorOutput;
   }
   
-  // Step 2: Perform local, precise calculations using pre-computed data
-  const planetaryData = lookupPlanetaryData(input.dateOfBirth);
+  // Step 2: Perform local, precise calculations using pre-computed data from cache
+  const planetaryData = await lookupPlanetaryDataFromCache(input.dateOfBirth);
   if (!planetaryData) {
-      throw new Error(`Could not find planetary data for ${input.dateOfBirth}. Please use a date within the supported range.`);
+      throw new Error(`Could not find planetary data for ${input.dateOfBirth} in the local cache. Please wait for the monthly data sync to complete.`);
   }
 
   const dateObj = new Date(`${input.dateOfBirth}T12:00:00Z`); // Use midday to avoid timezone issues
