@@ -45,9 +45,12 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
             throw new Error(`Failed to authenticate with ProKerala API: ${authResponse.statusText}`);
         }
         const { access_token } = await authResponse.json();
+        
+        const coordinates = '28.6139,77.2090'; // Hardcoded for New Delhi for now
+        const datetime = `${dateString}T12:00:00Z`;
 
         // Step 2: Fetch Panchang data using the token
-        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang?ayanamsa=1&coordinates=${location}&datetime=${dateString}T12:00:00Z`, {
+        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang?ayanamsa=1&coordinates=${coordinates}&datetime=${datetime}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${access_token}`
