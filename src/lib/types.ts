@@ -49,6 +49,11 @@ export type DashaPeriod = {
     endDate: string;
 }
 
+export type DoshaResult = {
+  hasDosha: boolean;
+  description: string;
+};
+
 export type KundliResult = {
   coreDetails: {
     lagna: string;
@@ -109,11 +114,6 @@ export type BirthDetails = {
 export type KundliMatchingInput = {
     boyDetails: BirthDetails;
     girlDetails: BirthDetails;
-};
-
-export type DoshaResult = {
-  hasDosha: boolean;
-  description: string;
 };
 
 export type KootaDetail = {
