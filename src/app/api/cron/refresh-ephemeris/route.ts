@@ -7,6 +7,32 @@ import { format, subDays } from 'date-fns';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Fetches raw planetary position data for a given date and caches it.
+ * In a production app, this would call the Prokerala "Planetary Positions" API.
+ * For this prototype, we use the panchang data as a stand-in to demonstrate caching.
+ * @param dateString The date to fetch data for (YYYY-MM-DD).
+ * @param location The location for the calculation.
+ * @returns The fetched planetary data.
+ */
+async function fetchAndCachePlanetaryData(dateString: string, location: string) {
+    // In a real implementation, this would call the "Planetary Positions" or "Birth Details" API
+    // to get the raw longitude, rashi, and nakshatra for each planet.
+    // For now, we use the panchang data as a placeholder for the ephemeris object.
+    const planetaryData = await fetchProkeralaPanchang(dateString, location);
+    
+    const { db } = await connectToDatabase();
+    const collection = db.collection('ephemeris_cache');
+
+    await collection.updateOne(
+        { _id: dateString },
+        { $set: { date: dateString, data: planetaryData } }, // Store raw planetary data
+        { upsert: true }
+    );
+    return planetaryData;
+}
+
+
+/**
  * This endpoint is designed to be called monthly by a cron job.
  * Its purpose is to pre-populate and keep the local ephemeris data (planetary positions)
  * in MongoDB up-to-date by fetching it from the Prokerala API.
@@ -14,41 +40,21 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
     console.log('Starting monthly ephemeris data refresh job...');
-    
-    // In a real application, this function would contain logic to:
-    // 1. Determine the range of dates to fetch (e.g., the next 30 days).
-    // 2. Loop through each date in the range.
-    // 3. Call a function to fetch planetary positions from Prokerala for that date.
-    // 4. Save the fetched data into the 'ephemeris_cache' collection in MongoDB.
-    //
-    // For this prototype, we will simulate fetching and updating data for the past 3 days
+
+    // For this prototype, we will fetch and update data for the past 3 days
     // to demonstrate the concept without using excessive API quota.
-
-    const results: { [key: string]: { success: boolean; message: string; data?: any } } = {};
-    const { db } = await connectToDatabase();
-    const collection = db.collection('ephemeris_cache');
-
+    const results: { [key: string]: { success: boolean; message: string; } } = {};
+    
     for (let i = 0; i < 3; i++) {
         const dateToFetch = subDays(new Date(), i);
         const dateString = format(dateToFetch, 'yyyy-MM-dd');
         
         try {
-            // Note: We use panchang as a proxy for planetary data fetching in this example.
-            // A production app would have a dedicated function for planetary positions.
-            // This function would call the "Planetary Positions API" from Prokerala.
-            const planetaryData = await fetchProkeralaPanchang(dateString, 'New Delhi, India');
-            
-            await collection.updateOne(
-                { _id: dateString },
-                { $set: { date: dateString, data: planetaryData } }, // Store raw planetary data
-                { upsert: true }
-            );
-
+            await fetchAndCachePlanetaryData(dateString, 'New Delhi, India');
             results[dateString] = {
                 success: true,
                 message: `Successfully fetched and cached ephemeris data for ${dateString}.`
             };
-
         } catch (error: any) {
              results[dateString] = {
                 success: false,
