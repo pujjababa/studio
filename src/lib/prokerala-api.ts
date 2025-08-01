@@ -46,16 +46,23 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
                 client_secret: CLIENT_SECRET,
             })
         });
+
         if (!authResponse.ok) {
-            throw new Error(`Failed to authenticate with ProKerala API: ${authResponse.statusText}`);
+            const errorBody = await authResponse.text();
+            throw new Error(`Failed to authenticate with ProKerala API: ${authResponse.statusText}. Response: ${errorBody}`);
         }
         const { access_token } = await authResponse.json();
         
         const coordinates = '28.6139,77.2090'; // Hardcoded for New Delhi for now
-        const datetime = `${dateString}T12:00:00Z`;
+        // The API requires a full ISO string, including time. We'll use midday.
+        const fullDateTime = `${dateString}T12:00:00+05:30`;
+        const encodedDateTime = encodeURIComponent(fullDateTime);
+
 
         // Step 2: Fetch Panchang data using the token from the advanced endpoint
-        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang/advanced?ayanamsa=1&coordinates=${coordinates}&datetime=${datetime}`, {
+        const apiUrl = `https://api.prokerala.com/v2/astrology/panchang/advanced?ayanamsa=1&coordinates=${coordinates}&datetime=${encodedDateTime}`;
+
+        const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${access_token}`
@@ -64,7 +71,7 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`Prokerala API Error: ${errorData.detail || response.statusText}`);
+            throw new Error(`Prokerala API Error (${response.status}): ${errorData.detail || response.statusText}`);
         }
 
         const data = await response.json();
