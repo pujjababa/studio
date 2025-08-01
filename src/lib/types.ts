@@ -1,3 +1,4 @@
+
 import {z} from 'zod';
 
 export interface Pandit {
@@ -90,6 +91,8 @@ export type PanchangResult = {
     date: string;
     day: string;
     tithi: string;
+    tithiStartTime: string;
+    tithiEndTime: string;
     nakshatra: string;
     yoga: string;
     karana: string;

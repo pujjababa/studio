@@ -1,4 +1,5 @@
 
+
 import { format, parseISO } from 'date-fns';
 import { formatInTimeZone, toDate } from 'date-fns-tz';
 import type { PanchangResult } from './types';
@@ -20,6 +21,16 @@ const formatTime = (dateString: string) => {
         return 'N/A';
     }
 }
+
+const formatDateTime = (dateString: string) => {
+    try {
+        const date = toDate(dateString);
+        return format(date, 'yyyy-MM-dd HH:mm');
+    } catch {
+        return 'N/A';
+    }
+}
+
 
 const formatTiming = (timing: {start: string, end: string}) => {
     if (!timing) return 'N/A';
@@ -98,6 +109,8 @@ export async function fetchProkeralaPanchang(dateString: string, location: strin
             date: dateString,
             day: panchang.vaara,
             tithi: currentTithi.name,
+            tithiStartTime: formatDateTime(currentTithi.start),
+            tithiEndTime: formatDateTime(currentTithi.end),
             nakshatra: currentNakshatra.name,
             yoga: currentYoga.name,
             karana: currentKarana.name,
