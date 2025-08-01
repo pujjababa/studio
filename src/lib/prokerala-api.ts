@@ -1,68 +1,76 @@
 
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import type { PanchangResult } from './types';
 
-const API_URL = 'https://api.prokerala.com/v2/astrology/panchang';
 const CLIENT_ID = process.env.PROKERALA_CLIENT_ID;
 const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET;
 
-// Helper to format time from API
-const formatTime = (time: {hour: number, minute: number, second: number}) => {
-    const date = new Date();
-    date.setHours(time.hour, time.minute, time.second);
-    return format(date, 'h:mm a');
+if (!CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error('ProKerala API credentials are not configured in the environment variables.');
 }
 
-// Helper to format timing periods from API
-const formatTiming = (timing: {start: {hour: number, minute: number, second: number}, end: {hour: number, minute: number, second: number}}) => {
+const formatTime = (dateString: string) => {
+    return format(parseISO(dateString), 'h:mm a');
+}
+
+const formatTiming = (timing: {start: string, end: string}) => {
     return `${formatTime(timing.start)} - ${formatTime(timing.end)}`;
 }
 
 
-export async function fetchProkeralaPanchang(date: string, location: string = 'New Delhi, India'): Promise<PanchangResult> {
-    if (!CLIENT_ID || !CLIENT_SECRET) {
-        throw new Error('ProKerala API credentials are not configured in the environment variables.');
-    }
-
-    const coordinates = '28.6139,77.2090'; // Default to New Delhi
-    const ayanamsa = 1; // Lahiri
-    const datetime = `${date}T12:00:00+00:00`; // Use midday for the given date, ensuring UTC format
-
-    const url = new URL(API_URL);
-    url.searchParams.append('datetime', datetime);
-    url.searchParams.append('ayanamsa', ayanamsa.toString());
-    url.searchParams.append('coordinates', coordinates);
-
-
-    const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${CLIENT_ID}:${CLIENT_SECRET}`
+export async function fetchProkeralaPanchang(dateString: string, location: string = 'New Delhi, India'): Promise<PanchangResult> {
+    try {
+        const authResponse = await fetch('https://api.prokerala.com/v2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                grant_type: 'client_credentials',
+                client_id: CLIENT_ID,
+                client_secret: CLIENT_SECRET,
+            })
+        });
+        if (!authResponse.ok) {
+            throw new Error(`Failed to authenticate with ProKerala API: ${authResponse.statusText}`);
         }
-    });
+        const { access_token } = await authResponse.json();
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Prokerala API Error: ${errorData.detail || response.statusText}`);
+        const response = await fetch(`https://api.prokerala.com/v2/astrology/panchang?ayanamsa=1&coordinates=${location}&datetime=${dateString}T12:00:00Z`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${access_token}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Prokerala API Error: ${errorData.detail || response.statusText}`);
+        }
+
+        const data = await response.json();
+        const panchang = data.data;
+
+        return {
+            date: dateString,
+            day: panchang.day,
+            tithi: panchang.tithi.name,
+            nakshatra: panchang.nakshatra.name,
+            yoga: panchang.yoga.name,
+            karana: panchang.karana.name,
+            sunrise: formatTime(panchang.sunrise),
+            sunset: formatTime(panchang.sunset),
+            paksha: panchang.paksha,
+            rahuKaal: formatTiming(panchang.timings.rahu_kaal),
+            gulikaKaal: formatTiming(panchang.timings.gulika_kaal),
+            yamaganda: formatTiming(panchang.timings.yamaganda),
+            abhijitMuhurat: formatTiming(panchang.timings.abhijit_muhurta),
+            festival: panchang.festivals.length > 0 ? panchang.festivals.join(', ') : undefined,
+        };
+    } catch (error: any) {
+         if (error.response) {
+            throw new Error(`Prokerala API Error: ${error.response.data.detail || error.response.statusText}`);
+        }
+        throw new Error(`Prokerala SDK Error: ${error.message}`);
     }
-
-    const data = await response.json();
-    const panchang = data.data;
-
-    return {
-        date: date,
-        day: panchang.day,
-        tithi: panchang.tithi.name,
-        nakshatra: panchang.nakshatra.name,
-        yoga: panchang.yoga.name,
-        karana: panchang.karana.name,
-        sunrise: formatTime(panchang.sunrise),
-        sunset: formatTime(panchang.sunset),
-        paksha: panchang.paksha,
-        rahuKaal: formatTiming(panchang.timings.rahu_kaal),
-        gulikaKaal: formatTiming(panchang.timings.gulika_kaal),
-        yamaganda: formatTiming(panchang.timings.yamaganda),
-        abhijitMuhurat: formatTiming(panchang.timings.abhijit_muhurta),
-        festival: panchang.festivals.length > 0 ? panchang.festivals.join(', ') : undefined,
-    };
 }
