@@ -27,51 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { featuredPandits, testimonials } from '@/lib/placeholder-data';
 import { PanditCard } from '@/components/PanditCard';
 import { ReviewCard } from '@/components/ReviewCard';
-import { upcomingFestivals } from '@/ai/flows/upcoming-festivals';
-import { format, parse, getYear } from 'date-fns';
-import { panchangGenerator } from '@/ai/flows/panchang-generator';
 
-async function UpcomingFestivals() {
-  try {
-    const festivals = await upcomingFestivals();
-    return (
-      <section id="upcoming-festivals" className="py-16 md:py-24">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold">
-              Upcoming Festivals
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Stay informed about the next auspicious dates in the Hindu calendar.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {festivals.map((festival) => {
-              const festivalDate = parse(festival.date, 'yyyy-MM-dd', new Date());
-              const festivalYear = getYear(festivalDate);
-              const festivalQuery = `${festival.name} ${festivalYear}`;
-              return (
-                <Link key={festival.name} href={`/panchang?query=${encodeURIComponent(festivalQuery)}`} className="block">
-                  <Card className="text-center p-4 transition-transform transform hover:-translate-y-2 hover:shadow-lg h-full">
-                    <CalendarHeart className="h-10 w-10 text-primary mx-auto mb-3" />
-                    <h3 className="font-headline text-lg font-bold">{festival.name}</h3>
-                    <p className="font-bold text-primary text-md">
-                      {format(festivalDate, 'MMMM d, yyyy')}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">{festival.description}</p>
-                  </Card>
-                </Link>
-            )})}
-          </div>
-        </div>
-      </section>
-    );
-  } catch (error) {
-    console.error("Failed to fetch upcoming festivals:", error);
-    // Return null or a fallback UI if the flow fails
-    return null;
-  }
-}
 
 export default async function Home() {
   const features = [
@@ -164,8 +120,6 @@ export default async function Home() {
         </div>
       </section>
       
-      <UpcomingFestivals />
-
       <section id="pandits" className="py-16 md:py-24 bg-card">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center">
@@ -181,39 +135,6 @@ export default async function Home() {
               <PanditCard key={pandit.id} pandit={pandit} />
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4 md:px-6">
-          <Card className="bg-primary/10 border-primary/20 overflow-hidden">
-             <div className="grid md:grid-cols-2 items-center gap-8">
-                <div className="p-8 md:p-12">
-                   <Sparkles className="h-10 w-10 text-primary mb-4" />
-                   <h2 className="text-3xl md:text-4xl font-headline font-bold">Unsure Which Puja to Perform?</h2>
-                   <p className="mt-4 text-lg text-muted-foreground">
-                     Let our AI Puja Planner guide you. Answer a few simple questions about your purpose, and we'll recommend the most suitable puja and the most auspicious time to perform it.
-                   </p>
-                   <Button asChild size="lg" className="mt-6">
-                     <Link href="/puja-planner">
-                       Try the AI Planner
-                       <ArrowRight className="ml-2 h-5 w-5" />
-                     </Link>
-                   </Button>
-                </div>
-                <div className="relative h-64 md:h-full">
-                    <Image
-                        src="https://placehold.co/600x600"
-                        alt="AI Puja Planner illustration"
-                        fill
-                        style={{objectFit: 'cover'}}
-                        data-ai-hint="spiritual ceremony"
-                        className="opacity-20 md:opacity-100"
-                    />
-                     <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-background to-transparent"></div>
-                </div>
-             </div>
-          </Card>
         </div>
       </section>
 

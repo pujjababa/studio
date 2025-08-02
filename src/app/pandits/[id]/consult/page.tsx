@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { panditEnquiry } from '@/ai/flows/pandit-enquiry';
-import type { PanditEnquiryResult } from '@/lib/types';
 import { featuredPandits } from '@/lib/placeholder-data';
 import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
@@ -38,7 +36,7 @@ const formSchema = z.object({
 });
 
 export default function PanditConsultPage() {
-  const [enquiryResult, setEnquiryResult] = useState<PanditEnquiryResult | null>(null);
+  const [enquiryResult, setEnquiryResult] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const params = useParams();
@@ -63,21 +61,18 @@ export default function PanditConsultPage() {
     setIsLoading(true);
     setEnquiryResult(null);
     try {
-      const input = {
-          userName: values.name,
-          userEmail: values.email,
-          question: values.question,
-          panditName: pandit.name,
-      }
-      const result = await panditEnquiry(input);
-      setEnquiryResult(result);
+        // AI flow is removed, showing a generic success message.
+      setEnquiryResult({
+          confirmationMessage: `Thank you, ${values.name}! Your question has been sent to ${pandit.name}.`,
+          nextSteps: `Please expect a response to your email address (${values.email}) within 24-48 hours.`
+      });
       form.reset();
     } catch (error) {
       console.error('Error submitting enquiry:', error);
       toast({
         variant: 'destructive',
         title: 'An error occurred',
-        description: 'Failed to submit your enquiry. The AI model may be busy. Please try again.',
+        description: 'Failed to submit your enquiry. Please try again.',
       });
     } finally {
       setIsLoading(false);

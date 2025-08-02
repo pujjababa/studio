@@ -34,9 +34,6 @@ export function Footer() {
               <h3 className="font-semibold font-headline tracking-wider">Navigate</h3>
               <ul className="mt-4 space-y-2">
                 <li><Link href="/" className="text-muted-foreground hover:text-primary transition-colors">Home</Link></li>
-                <li><Link href="/puja-planner" className="text-muted-foreground hover:text-primary transition-colors">AI Planner</Link></li>
-                <li><Link href="/kundli-generator" className="text-muted-foreground hover:text-primary transition-colors">Kundli Generator</Link></li>
-                <li><Link href="/panchang" className="text-muted-foreground hover:text-primary transition-colors">Panchang</Link></li>
                 <li><Link href="/puja-kits" className="text-muted-foreground hover:text-primary transition-colors">Puja Kits</Link></li>
                 <li><Link href="/content-hub" className="text-muted-foreground hover:text-primary transition-colors">Content</Link></li>
                  <li><Link href="/remedies-hub" className="text-muted-foreground hover:text-primary transition-colors">Remedies</Link></li>

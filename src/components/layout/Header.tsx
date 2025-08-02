@@ -21,10 +21,7 @@ import {
 const marriageNavItems: { href: string, label: string }[] = [
 ];
 
-const toolsNavItems = [
-  { href: '/puja-planner', label: 'AI Puja Planner' },
-  { href: '/kundli-generator', label: 'Kundli Generator' },
-  { href: '/panchang', label: 'Panchang' },
+const toolsNavItems: { href: string, label: string }[] = [
 ];
 
 const resourcesNavItems = [
@@ -135,7 +132,7 @@ export function Header() {
                     </NavLink>
                 ))}
                 
-                <p className="font-semibold text-muted-foreground pt-4">Tools & Guides</p>
+                {toolsNavItems.length > 0 && <p className="font-semibold text-muted-foreground pt-4">Tools & Guides</p>}
                 {toolsNavItems.map((item) => (
                     <NavLink key={item.href} href={item.href} pathname={pathname} onClick={closeMobileMenu}>
                         {item.label}
