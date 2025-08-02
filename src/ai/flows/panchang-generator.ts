@@ -3,18 +3,19 @@
 
 /**
  * @fileOverview An AI agent for generating Panchang details for a specific date.
- * This flow now uses the ProKerala API for accurate data and caches results in MongoDB.
+ * This flow now uses local calculation and AI for interpretation.
  *
  * - panchangGenerator - A function that handles the Panchang generation process.
  * - PanchangGeneratorInput - The input type for the panchangGenerator function.
  * - PanchangResult - The return type for the panchangGenerator function.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb';
-import { fetchProkeralaPanchang } from '@/lib/prokerala-api';
+import { getTithi, getNakshatra, getYoga, getKarana, getVara } from '@/lib/astrology-calculator';
+import { lookupPlanetaryData } from '@/lib/astrology-lookup';
 import type { PanchangResult } from '@/lib/types';
-
 
 const PanchangGeneratorInputSchema = z.object({
   date: z.string().describe("The date for which to generate the panchang, in YYYY-MM-DD format."),
@@ -22,29 +23,99 @@ const PanchangGeneratorInputSchema = z.object({
 });
 export type PanchangGeneratorInput = z.infer<typeof PanchangGeneratorInputSchema>;
 
-
 export async function panchangGenerator(input: PanchangGeneratorInput): Promise<PanchangResult> {
-  const { db } = await connectToDatabase();
-  const cacheKey = `${input.date}-${input.location || 'default'}`;
-  const cacheCollection = db.collection('panchang_cache');
-
-  // 1. Check for a valid cache entry in MongoDB
-  const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-  if (cachedData) {
-    // Make sure to remove the MongoDB `_id` field before returning
-    const { _id, ...panchangData } = cachedData;
-    return panchangData as PanchangResult;
+  // Step 1: Get planetary data from local source
+  const planetaryData = lookupPlanetaryData(input.date);
+  if (!planetaryData) {
+      throw new Error(`Could not find planetary data for ${input.date}.`);
   }
+  
+  const dateObj = new Date(`${input.date}T12:00:00Z`);
+  const dayOfWeek = dateObj.getUTCDay();
 
-  // 2. Fetch data from ProKerala API if not in cache
-  const apiData = await fetchProkeralaPanchang(input.date, input.location);
+  // Step 2: Perform local calculations
+  const tithi = getTithi(planetaryData.Sun.longitude, planetaryData.Moon.longitude);
+  const nakshatra = getNakshatra(planetaryData.Moon.longitude);
+  const yoga = getYoga(planetaryData.Sun.longitude, planetaryData.Moon.longitude);
+  const karana = getKarana(tithi);
+  const vara = getVara(dayOfWeek);
 
-  // 3. Store the new result in the MongoDB cache for future requests
-  await cacheCollection.updateOne(
-    { _id: cacheKey },
-    { $set: apiData },
-    { upsert: true }
-  );
+  // Step 3: Use AI for timings and other details
+   const result = await panchangGeneratorFlow({
+     date: input.date,
+     day: vara,
+     tithi: tithi.name,
+     nakshatra: nakshatra.name,
+     yoga: yoga.name,
+     karana: karana.name,
+     location: input.location || 'New Delhi, India'
+   });
 
-  return apiData;
+   return result;
 }
+
+const PanchangGeneratorFlowInputSchema = z.object({
+  date: z.string(),
+  day: z.string(),
+  tithi: z.string(),
+  nakshatra: z.string(),
+  yoga: z.string(),
+  karana: z.string(),
+  location: z.string(),
+});
+
+const PanchangResultSchema = z.object({
+    date: z.string(),
+    day: z.string(),
+    tithi: z.string(),
+    tithiStartTime: z.string().describe("The start time of the tithi in 'YYYY-MM-DD HH:mm' format."),
+    tithiEndTime: z.string().describe("The end time of the tithi in 'YYYY-MM-DD HH:mm' format."),
+    nakshatra: z.string(),
+    yoga: z.string(),
+    karana: z.string(),
+    sunrise: z.string().describe("Sunrise time in HH:MM AM/PM format."),
+    sunset: z.string().describe("Sunset time in HH:MM AM/PM format."),
+    paksha: z.string(),
+    rahuKaal: z.string().describe('The inauspicious period of Rahu Kaal, in HH:MM AM/PM - HH:MM AM/PM format.'),
+    gulikaKaal: z.string().describe('The period of Gulika Kaal, in HH:MM AM/PM - HH:MM AM/PM format.'),
+    yamaganda: z.string().describe('The period of Yamaganda, in HH:MM AM/PM - HH:MM AM/PM format.'),
+    abhijitMuhurat: z.string().describe('The auspicious Abhijit Muhurat, in HH:MM AM/PM - HH:MM AM/PM format.'),
+    festival: z.string().optional().describe("Name of any festival on this day, if applicable."),
+});
+
+const panchangGeneratorFlow = ai.defineFlow(
+  {
+    name: 'panchangGeneratorFlow',
+    inputSchema: PanchangGeneratorFlowInputSchema,
+    outputSchema: PanchangResultSchema,
+  },
+  async (input) => {
+    const prompt = `
+You are a Vedic astrology expert. Generate the full panchang details for the given date and location.
+You have been provided with the core calculated values (Tithi, Nakshatra, etc.).
+Your task is to determine the sunrise/sunset times, auspicious/inauspicious timings (muhurats), Paksha, and any festival for that day based on general astrological knowledge for the location of ${input.location}.
+
+Date: ${input.date}
+Day: ${input.day}
+Tithi: ${input.tithi}
+Nakshatra: ${input.nakshatra}
+Yoga: ${input.yoga}
+Karana: ${input.karana}
+Location: ${input.location}
+
+Provide the output in the specified JSON format. The timings should be plausible for the Indian subcontinent.
+For tithiStartTime and tithiEndTime, create plausible start and end times for the given tithi on the given date.
+`;
+    const { output } = await ai.generate({
+      prompt: prompt,
+      output: {
+        schema: PanchangResultSchema,
+      },
+    });
+
+    if (!output) {
+      throw new Error('Failed to generate panchang details.');
+    }
+    return output;
+  }
+);

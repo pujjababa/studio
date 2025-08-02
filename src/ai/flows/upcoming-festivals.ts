@@ -3,15 +3,15 @@
 
 /**
  * @fileOverview An AI agent for finding a list of upcoming festivals.
- * This flow now uses the Prokerala API to find festivals by checking future dates.
+ * This flow now uses an AI to predict upcoming festivals.
  *
  * - upcomingFestivals - A function that returns a list of the next 5 major festivals.
  * - UpcomingFestival - The type for a single upcoming festival.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { format, addDays } from 'date-fns';
-import { panchangGenerator } from './panchang-generator';
+import { format } from 'date-fns';
 
 const UpcomingFestivalSchema = z.object({
   name: z.string().describe("The official name of the festival."),
@@ -20,68 +20,40 @@ const UpcomingFestivalSchema = z.object({
 });
 export type UpcomingFestival = z.infer<typeof UpcomingFestivalSchema>;
 
-
-const festivalDescriptions: { [key: string]: string } = {
-    "Diwali": "The festival of lights, symbolizing the victory of light over darkness.",
-    "Holi": "A vibrant festival of colors, celebrating the arrival of spring.",
-    "Navratri": "A nine-night festival dedicated to the worship of the goddess Durga.",
-    "Krishna Janmashtami": "Celebrating the birth of Lord Krishna.",
-    "Ganesh Chaturthi": "A festival honoring the birth of the elephant-headed god, Ganesha.",
-    "Raksha Bandhan": "A festival celebrating the bond between brothers and sisters.",
-    "Maha Shivratri": "The great night of Shiva, a major festival in Hinduism.",
-    "Dussehra": "Commemorates the victory of Lord Rama over Ravana.",
-    "Makar Sankranti": "A harvest festival marking the sun's transit into Capricorn.",
-    "Ram Navami": "Celebrates the birth of Lord Rama."
-};
-
-function getFestivalDescription(name: string): string {
-    for (const key in festivalDescriptions) {
-        if (name.toLowerCase().includes(key.toLowerCase())) {
-            return festivalDescriptions[key];
-        }
-    }
-    return `A significant Hindu festival, celebrated with devotion and joy.`;
-}
-
+const UpcomingFestivalsOutputSchema = z.object({
+  festivals: z.array(UpcomingFestivalSchema),
+});
 
 // Main exported function for the frontend to use.
 export async function upcomingFestivals(): Promise<UpcomingFestival[]> {
     const result = await upcomingFestivalsFlow();
-    return result;
+    return result.festivals;
 }
 
-// The flow, which uses Prokerala API to find festivals.
-export async function upcomingFestivalsFlow(): Promise<UpcomingFestival[]> {
-    const festivals: UpcomingFestival[] = [];
-    let currentDate = new Date();
-    const checkedFestivals = new Set<string>();
+const upcomingFestivalsFlow = ai.defineFlow(
+  {
+    name: 'upcomingFestivalsFlow',
+    outputSchema: UpcomingFestivalsOutputSchema,
+  },
+  async () => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const prompt = `
+You are an expert on Hindu festivals. List the next 5 major Hindu festivals occurring after ${today}.
+Provide their name, exact date in YYYY-MM-DD format, and a brief one-sentence description.
+Ensure the festivals are in chronological order.
+`;
 
-    // We'll check the next 90 days to find 5 festivals.
-    for (let i = 0; i < 90 && festivals.length < 5; i++) {
-        const dateString = format(currentDate, 'yyyy-MM-dd');
-        try {
-            const panchang = await panchangGenerator({ date: dateString });
-
-            if (panchang.festival && panchang.festival !== "None") {
-                 const festivalNames = panchang.festival.split(', ');
-                 for (const name of festivalNames) {
-                    const uniqueKey = `${name}-${dateString}`;
-                    if (!checkedFestivals.has(uniqueKey) && festivals.length < 5) {
-                         festivals.push({
-                            name,
-                            date: dateString,
-                            description: getFestivalDescription(name),
-                        });
-                        checkedFestivals.add(uniqueKey);
-                    }
-                 }
-            }
-        } catch (error) {
-            // Log the error but continue to the next day
-            console.error(`Could not fetch panchang for ${dateString}:`, error);
-        }
-        currentDate = addDays(currentDate, 1);
+    const { output } = await ai.generate({
+      prompt: prompt,
+      output: {
+        schema: UpcomingFestivalsOutputSchema,
+      },
+    });
+    
+    if (!output) {
+        throw new Error('Could not generate upcoming festivals.');
     }
     
-    return festivals;
-}
+    return output;
+  }
+);

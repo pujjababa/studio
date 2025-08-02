@@ -5,7 +5,7 @@
 /**
  * @fileOverview An AI agent for finding festival details.
  * This flow now dynamically determines the date of a festival based on the user's query,
- * then fetches precise panchang data from the Prokerala API for that date.
+ * then fetches precise panchang data from the local ephemeris data for that date.
  *
  * - festivalDetails - A function that orchestrates the data gathering and AI description.
  * - FestivalDetails - The return type for the function.
@@ -96,7 +96,7 @@ const festivalFinderFlow = ai.defineFlow(
         throw new Error(`Could not determine a valid date for "${input.query}". Please try a more specific query, like "Diwali 2024".`);
     }
 
-    // Step 2: Fetch accurate panchang data for that date using the Prokerala API.
+    // Step 2: Fetch accurate panchang data for that date using local data.
     const panchang = await panchangGenerator({ date: festivalDate });
     
     // Step 3: Pass the verified data to the describer AI to generate the final user-facing content.
