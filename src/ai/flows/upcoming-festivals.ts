@@ -3,16 +3,15 @@
 
 /**
  * @fileOverview An AI agent for finding a list of upcoming festivals.
- * This flow now caches its results in MongoDB to be used by the application.
+ * This flow now uses the Prokerala API to find festivals by checking future dates.
  *
- * - upcomingFestivals - A function that returns a list of the next 5 major festivals from cache or generates them.
+ * - upcomingFestivals - A function that returns a list of the next 5 major festivals.
  * - UpcomingFestival - The type for a single upcoming festival.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { format } from 'date-fns';
-// import { connectToDatabase } from '@/lib/mongodb';
+import { format, addDays } from 'date-fns';
+import { panchangGenerator } from './panchang-generator';
 
 const UpcomingFestivalSchema = z.object({
   name: z.string().describe("The official name of the festival."),
@@ -21,70 +20,68 @@ const UpcomingFestivalSchema = z.object({
 });
 export type UpcomingFestival = z.infer<typeof UpcomingFestivalSchema>;
 
-const UpcomingFestivalsOutputSchema = z.object({
-    festivals: z.array(UpcomingFestivalSchema).length(5).describe("A list of exactly 5 upcoming major Hindu festivals."),
-});
 
-// const CACHE_KEY = 'latest';
+const festivalDescriptions: { [key: string]: string } = {
+    "Diwali": "The festival of lights, symbolizing the victory of light over darkness.",
+    "Holi": "A vibrant festival of colors, celebrating the arrival of spring.",
+    "Navratri": "A nine-night festival dedicated to the worship of the goddess Durga.",
+    "Krishna Janmashtami": "Celebrating the birth of Lord Krishna.",
+    "Ganesh Chaturthi": "A festival honoring the birth of the elephant-headed god, Ganesha.",
+    "Raksha Bandhan": "A festival celebrating the bond between brothers and sisters.",
+    "Maha Shivratri": "The great night of Shiva, a major festival in Hinduism.",
+    "Dussehra": "Commemorates the victory of Lord Rama over Ravana.",
+    "Makar Sankranti": "A harvest festival marking the sun's transit into Capricorn.",
+    "Ram Navami": "Celebrates the birth of Lord Rama."
+};
 
-// Main exported function for the frontend to use.
-// It tries to get data from cache first, and falls back to generating it live if cache is empty.
-export async function upcomingFestivals(): Promise<UpcomingFestival[]> {
-    // const { db } = await connectToDatabase();
-    // const cacheCollection = db.collection('upcoming_festivals_cache');
-    // const cachedData = await cacheCollection.findOne({ _id: CACHE_KEY });
-
-    // if (cachedData && cachedData.festivals) {
-    //     return cachedData.festivals as UpcomingFestival[];
-    // }
-    
-    // If cache is empty, run the flow to generate and return the data live.
-    // The flow itself will also cache the result for the next time.
-    const result = await upcomingFestivalsFlow();
-    return result.festivals;
+function getFestivalDescription(name: string): string {
+    for (const key in festivalDescriptions) {
+        if (name.toLowerCase().includes(key.toLowerCase())) {
+            return festivalDescriptions[key];
+        }
+    }
+    return `A significant Hindu festival, celebrated with devotion and joy.`;
 }
 
-// The Genkit flow, typically called by the cron job.
-// It always fetches fresh data and updates the cache.
-export const upcomingFestivalsFlow = ai.defineFlow(
-  {
-    name: 'upcomingFestivalsFlow',
-    inputSchema: z.void(),
-    outputSchema: UpcomingFestivalsOutputSchema,
-  },
-  async () => {
-    const currentDate = format(new Date(), 'yyyy-MM-dd');
-    
-    const prompt = `You are an expert Vedic astrologer (Jyotishi). Your task is to identify the next 5 major Hindu festivals occurring after today's date, which is ${currentDate}.
 
-    **Instructions:**
-    1.  Consider only major, widely-celebrated festivals (e.g., Diwali, Holi, Navratri, Janmashtami, Maha Shivratri, etc.).
-    2.  Provide the exact date for each festival in YYYY-MM-DD format.
-    3.  For each festival, write a very brief, one-sentence description of its significance.
-    4.  Return a list of exactly 5 festivals.
+// Main exported function for the frontend to use.
+export async function upcomingFestivals(): Promise<UpcomingFestival[]> {
+    const result = await upcomingFestivalsFlow();
+    return result;
+}
 
-    Your final output must be in the specified JSON format.`;
+// The flow, which uses Prokerala API to find festivals.
+export async function upcomingFestivalsFlow(): Promise<UpcomingFestival[]> {
+    const festivals: UpcomingFestival[] = [];
+    let currentDate = new Date();
+    const checkedFestivals = new Set<string>();
 
-    const { output } = await ai.generate({
-        prompt,
-        output: {
-            schema: UpcomingFestivalsOutputSchema,
-        },
-    });
+    // We'll check the next 90 days to find 5 festivals.
+    for (let i = 0; i < 90 && festivals.length < 5; i++) {
+        const dateString = format(currentDate, 'yyyy-MM-dd');
+        try {
+            const panchang = await panchangGenerator({ date: dateString });
 
-    if (!output) {
-      throw new Error('Could not retrieve upcoming festivals at this time.');
+            if (panchang.festival && panchang.festival !== "None") {
+                 const festivalNames = panchang.festival.split(', ');
+                 for (const name of festivalNames) {
+                    const uniqueKey = `${name}-${dateString}`;
+                    if (!checkedFestivals.has(uniqueKey) && festivals.length < 5) {
+                         festivals.push({
+                            name,
+                            date: dateString,
+                            description: getFestivalDescription(name),
+                        });
+                        checkedFestivals.add(uniqueKey);
+                    }
+                 }
+            }
+        } catch (error) {
+            // Log the error but continue to the next day
+            console.error(`Could not fetch panchang for ${dateString}:`, error);
+        }
+        currentDate = addDays(currentDate, 1);
     }
     
-    // Cache the newly generated result in MongoDB
-    // const { db } = await connectToDatabase();
-    // const cacheCollection = db.collection('upcoming_festivals_cache');
-    // await cacheCollection.updateOne(
-    //     { _id: CACHE_KEY },
-    //     { $set: output },
-    //     { upsert: true }
-    // );
-    
-    return output;
-  }
-);
+    return festivals;
+}
