@@ -12,7 +12,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-// import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '@/lib/mongodb';
 
 // Define Zod schemas for input and output
 const MuhuratFinderInputSchema = z.object({
@@ -38,25 +38,25 @@ export type MuhuratFinderOutput = z.infer<typeof MuhuratFinderOutputSchema>;
 
 
 export async function muhuratFinder(input: MuhuratFinderInput): Promise<MuhuratFinderOutput> {
-  // const { db } = await connectToDatabase();
-  // const cacheKey = `${input.month}-${input.region || 'default'}`;
-  // const cacheCollection = db.collection('muhurat_cache');
+  const { db } = await connectToDatabase();
+  const cacheKey = `${input.month}-${input.region || 'default'}`;
+  const cacheCollection = db.collection('muhurat_cache');
 
-  // // 1. Check for a valid cache entry in MongoDB
-  // const cachedData = await cacheCollection.findOne({ _id: cacheKey });
-  // if (cachedData) {
-  //   const { _id, ...muhuratData } = cachedData;
-  //   return muhuratData as MuhuratFinderOutput;
-  // }
+  // 1. Check for a valid cache entry in MongoDB
+  const cachedData = await cacheCollection.findOne({ _id: cacheKey });
+  if (cachedData) {
+    const { _id, ...muhuratData } = cachedData;
+    return muhuratData as MuhuratFinderOutput;
+  }
 
   const result = await muhuratFinderFlow(input);
   
   // Store the new result in the MongoDB cache for future requests
-  // await cacheCollection.updateOne(
-  //   { _id: cacheKey },
-  //   { $set: result },
-  //   { upsert: true }
-  // );
+  await cacheCollection.updateOne(
+    { _id: cacheKey },
+    { $set: result },
+    { upsert: true }
+  );
 
   return result;
 }
