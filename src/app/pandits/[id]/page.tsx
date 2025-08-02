@@ -97,16 +97,11 @@ export default function PanditProfilePage({
         <div className="lg:col-span-1">
           <Card className="sticky top-24">
             <CardHeader>
-              <CardTitle className="font-headline text-2xl">Consult this Pandit</CardTitle>
+              <CardTitle className="font-headline text-2xl">Contact this Pandit</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-                <p className="text-sm text-muted-foreground">Have questions about marriage compatibility, auspicious dates, or need specific advice? Book a one-on-one consultation.</p>
-
-                <Button size="lg" className="w-full" asChild>
-                    <Link href={`/pandits/${pandit.id}/consult`}>
-                        <MessageSquare className="mr-2 h-5 w-5" /> Book a 1:1 Consultation
-                    </Link>
-                </Button>
+                <p className="text-sm text-muted-foreground">You can download the pandit's profile to get their contact information.</p>
+                
                 <Button size="lg" variant="secondary" className="w-full">
                     <Download className="mr-2 h-5 w-5" /> Download Profile (PDF)
                 </Button>
