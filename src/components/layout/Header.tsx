@@ -18,11 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-const marriageNavItems = [
-  { href: '/kundli-matching', label: 'Kundli Matching' },
-  { href: '/nakshatra-porutham', label: 'Nakshatra Porutham' },
-  { href: '/marriage-muhurat', label: 'Marriage Muhurat' },
-  { href: '/marriage-path-dashboard', label: 'Marriage Path' },
+const marriageNavItems: { href: string, label: string }[] = [
 ];
 
 const toolsNavItems = [
@@ -63,6 +59,7 @@ function NavLink({ href, pathname, children, onClick }: { href: string; pathname
 }
 
 function NavDropdown({ title, items, pathname, closeMobileMenu }: { title: string, items: {href: string, label: string}[], pathname: string, closeMobileMenu?: () => void }) {
+    if (items.length === 0) return null;
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -131,7 +128,7 @@ export function Header() {
               <nav className="flex flex-col space-y-4">
                 <NavLink href="/" pathname={pathname} onClick={closeMobileMenu}>Home</NavLink>
                 
-                <p className="font-semibold text-muted-foreground pt-4">Marriage & Compatibility</p>
+                {marriageNavItems.length > 0 && <p className="font-semibold text-muted-foreground pt-4">Marriage & Compatibility</p>}
                 {marriageNavItems.map((item) => (
                     <NavLink key={item.href} href={item.href} pathname={pathname} onClick={closeMobileMenu}>
                         {item.label}
