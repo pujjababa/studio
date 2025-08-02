@@ -2,28 +2,17 @@
 import {
   ArrowRight,
   BookOpen,
-  CalendarCheck,
-  HeartHandshake,
   QrCode,
-  Sparkles,
-  Star,
   UserCheck,
-  CalendarHeart,
 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
-  CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { featuredPandits, testimonials } from '@/lib/placeholder-data';
 import { PanditCard } from '@/components/PanditCard';
 import { ReviewCard } from '@/components/ReviewCard';
@@ -44,12 +33,6 @@ export default async function Home() {
       link: '#pandits',
     },
     {
-      icon: <Sparkles className="h-8 w-8 text-primary" />,
-      title: 'AI Puja Planner',
-      description: 'Get personalized puja recommendations and find auspicious dates with our smart AI.',
-      link: '/puja-planner',
-    },
-    {
       icon: <BookOpen className="h-8 w-8 text-primary" />,
       title: 'Content Hub',
       description: 'Explore articles, videos, and guides on rituals, mantras, and fasting in multiple languages.',
@@ -66,16 +49,16 @@ export default async function Home() {
               Your Guide to Divine Rituals
             </h1>
             <p className="mt-6 text-lg md:text-xl text-muted-foreground">
-              PujaBaba connects you with verified pandits, helps you plan the perfect puja with AI, and provides a wealth of spiritual knowledge.
+              PujaBaba connects you with verified pandits, helps you plan the perfect puja, and provides a wealth of spiritual knowledge.
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Button asChild size="lg">
-                <Link href="/puja-planner">
-                  Plan Your Puja <ArrowRight className="ml-2 h-5 w-5" />
+                <Link href="#pandits">
+                  Find a Pandit <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href="#pandits">Find a Pandit</Link>
+                <Link href="/content-hub">Explore Content</Link>
               </Button>
             </div>
           </div>
@@ -106,7 +89,7 @@ export default async function Home() {
               From finding the right pandit to understanding ancient rituals, we've got you covered.
             </p>
           </div>
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
               <Card key={feature.title} className="text-center flex flex-col items-center p-6 transition-transform transform hover:-translate-y-2 hover:shadow-xl">
                 <div className="mb-4">{feature.icon}</div>

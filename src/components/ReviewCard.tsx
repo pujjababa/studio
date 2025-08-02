@@ -5,7 +5,7 @@ import type { Review } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface ReviewCardProps {
-  review: Omit<Review, 'panditId' | 'id'>;
+  review: Review;
   className?: string;
 }
 

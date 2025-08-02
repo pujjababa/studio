@@ -12,25 +12,25 @@ import {
   MapPin,
   MessageSquare,
   Star,
-  BookMarked,
 } from "lucide-react";
+import type { Pandit } from "@/lib/types";
 
 export default function PanditProfilePage({
   params,
 }: {
   params: { id: string };
 }) {
-  const pandit = featuredPandits.find((p) => p.id === params.id);
+  const pandit = featuredPandits.find((p) => p.id === params.id) as Pandit | undefined;
 
   if (!pandit) {
     notFound();
   }
 
-  const panditReviews = testimonials.map((t, index) => ({
-    ...t,
-    id: `review-${index}`,
-    panditId: (index % 2 === 0) ? '1' : '2',
-  })).filter(r => r.panditId === params.id || params.id === '1'); // show some reviews for demo
+  // Filter testimonials to show only reviews for the current pandit, or some for demo.
+   const panditReviews = testimonials.filter((t, index) => {
+    const panditId = (index % 2 === 0) ? '1' : '2'; // Assign reviews to pandits for demo
+    return panditId === params.id || params.id === '1';
+  });
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
