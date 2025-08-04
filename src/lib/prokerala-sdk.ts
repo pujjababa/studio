@@ -8,7 +8,7 @@ class ProkeralaAstrologer {
     }
     async fetchToken() {
         const auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-        const response = await fetch(`${this.apiEndpoint}/token`, {
+        const response = await fetch('https://api.prokerala.com/token', {
             method: 'POST',
             headers: {
                 'Authorization': `Basic ${auth}`,
@@ -48,7 +48,8 @@ class ProkeralaAstrologer {
         }
 
         if (!response.ok) {
-            throw new Error(`API request failed: ${response.statusText}`);
+            const errorText = await response.text();
+            throw new Error(`API request failed: ${response.statusText} - ${errorText}`);
         }
 
         return response.json();
