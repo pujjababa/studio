@@ -35,23 +35,20 @@ class ProkeralaAstrologer {
             },
         });
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Token might have expired, fetch a new one and retry
-                await this.fetchToken();
-                response = await fetch(url.toString(), {
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                     throw new Error(`API request failed after retry: ${response.statusText}`);
-                }
-            } else {
-                 throw new Error(`API request failed: ${response.statusText}`);
-            }
+        if (response.status === 401) {
+            // Token might have expired, fetch a new one and retry
+            await this.fetchToken();
+            response = await fetch(url.toString(), {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                },
+            });
         }
+
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.statusText}`);
+        }
+
         return response.json();
     }
     async getPanchangFestivals(location, year, religiousOnly, ayanamsa, language) {
