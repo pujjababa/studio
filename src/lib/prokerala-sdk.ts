@@ -28,17 +28,29 @@ class ProkeralaAstrologer {
         }
         const url = new URL(`${this.apiEndpoint}${path}`);
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-        const response = await fetch(url.toString(), {
+        
+        let response = await fetch(url.toString(), {
             headers: {
                 'Authorization': `Bearer ${this.token}`,
             },
         });
+
         if (!response.ok) {
             if (response.status === 401) {
+                // Token might have expired, fetch a new one and retry
                 await this.fetchToken();
-                return this.get(path, params);
+                response = await fetch(url.toString(), {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                     throw new Error(`API request failed after retry: ${response.statusText}`);
+                }
+            } else {
+                 throw new Error(`API request failed: ${response.statusText}`);
             }
-            throw new Error(`API request failed: ${response.statusText}`);
         }
         return response.json();
     }
