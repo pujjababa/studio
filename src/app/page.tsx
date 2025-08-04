@@ -2,6 +2,7 @@
 import {
   ArrowRight,
   BookOpen,
+  CalendarDays,
   QrCode,
   UserCheck,
 } from 'lucide-react';
@@ -16,6 +17,8 @@ import {
 import { featuredPandits, testimonials } from '@/lib/placeholder-data';
 import { PanditCard } from '@/components/PanditCard';
 import { ReviewCard } from '@/components/ReviewCard';
+import { getUpcomingFestivals } from '@/lib/prokerala';
+import { FestivalCard } from '@/components/FestivalCard';
 
 
 export default async function Home() {
@@ -39,6 +42,8 @@ export default async function Home() {
       link: '/content-hub',
     },
   ];
+
+  const upcomingFestivals = await getUpcomingFestivals();
 
   return (
     <div className="flex flex-col">
@@ -102,8 +107,27 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <section id="festivals" className="py-16 md:py-24 bg-card">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center">
+             <CalendarDays className="h-10 w-10 mx-auto text-primary mb-4" />
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">
+              Upcoming Festivals
+            </h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Stay informed about the next auspicious dates in the Hindu calendar.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            {upcomingFestivals.map((festival) => (
+              <FestivalCard key={festival.name} festival={festival} />
+            ))}
+          </div>
+        </div>
+      </section>
       
-      <section id="pandits" className="py-16 md:py-24 bg-card">
+      <section id="pandits" className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">

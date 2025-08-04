@@ -1,4 +1,5 @@
 
+
 export interface Pandit {
   id: string;
   name: string;
@@ -37,4 +38,9 @@ export interface Temple {
   deity: string;
   liveAarti: boolean;
   onlineDarshan: boolean;
+}
+
+export interface Festival {
+  name: string;
+  startDate: string;
 }
