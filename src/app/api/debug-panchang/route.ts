@@ -1,12 +1,14 @@
 
 import { NextResponse } from 'next/server';
 import { getDailyPanchang } from '@/lib/prokerala';
+import { getFormattedProkeralaDate } from '@/lib/utils';
 
 export async function GET() {
   try {
     // Using Mumbai, India as default coordinates and current time for testing
     const coordinates = '19.0760,72.8777';
     const now = new Date();
+    // Use the exact same formatting as the main app
     const datetime = now.toISOString();
 
     const result = await getDailyPanchang(datetime, coordinates);
