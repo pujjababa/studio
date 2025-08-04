@@ -7,11 +7,15 @@ const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET ?? '';
 
 const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
 
-export async function getUpcomingFestivals(): Promise<Festival[]> {
+export async function getUpcomingFestivals(detailedError = false): Promise<Festival[] | { error: string; details?: any }> {
     try {
         if (!CLIENT_ID || !CLIENT_SECRET) {
-            console.error('Prokerala API credentials are not set in the environment variables.');
-            return [];
+            const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
+            console.error(errorMsg);
+            if(detailedError) {
+                return { error: errorMsg };
+            }
+            throw new Error(errorMsg);
         }
 
         const year = new Date().getFullYear();
@@ -34,12 +38,27 @@ export async function getUpcomingFestivals(): Promise<Festival[]> {
             return festivalDate >= today;
         });
 
-        return upcoming.slice(0, 5).map((f) => ({
+        const festivals = upcoming.slice(0, 5).map((f) => ({
             name: f.name,
             startDate: f.start_date,
         }));
-    } catch (error) {
+        
+        if (detailedError) {
+            // @ts-ignore
+            return festivals;
+        }
+        return festivals;
+
+    } catch (error: any) {
         console.error('Error fetching upcoming festivals:', error);
+        if (detailedError) {
+            return {
+                error: 'Failed to fetch festivals from Prokerala API.',
+                details: error.message || 'No additional details',
+            };
+        }
+        // In the component, we don't want to crash the page, so we return an empty array.
+        // The debug endpoint will show the error.
         return [];
     }
 }
