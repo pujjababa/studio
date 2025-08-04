@@ -26,7 +26,7 @@ class ProkeralaAstrologer {
         if (!this.token) {
             await this.fetchToken();
         }
-        const url = new URL(`${this.apiEndpoint}${path}`);
+        const url = new URL(path, this.apiEndpoint);
         if (params) {
             Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
         }
@@ -55,7 +55,7 @@ class ProkeralaAstrologer {
         return response.json();
     }
     async getPanchangFestivals(location, year, religiousOnly, ayanamsa, language) {
-        return this.get('/astrology/panchang-festivals', {
+        return this.get('astrology/panchang-festivals', {
             'location': `${location.latitude},${location.longitude}`,
             'year': year,
             'religious_only': religiousOnly,
