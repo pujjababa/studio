@@ -44,3 +44,9 @@ export interface Festival {
   name: string;
   startDate: string;
 }
+
+export interface Panchang {
+    tithi: string;
+    nakshatra: string;
+    yoga: string;
+}

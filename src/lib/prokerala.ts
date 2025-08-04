@@ -1,11 +1,33 @@
 
-import type { Festival } from './types';
+import type { Festival, Panchang } from './types';
 import { ProkeralaAstrologer } from './prokerala-sdk';
 
 const CLIENT_ID = process.env.PROKERALA_CLIENT_ID ?? '';
 const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET ?? '';
 
 const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
+
+export async function getDailyPanchang(datetime: string, coordinates: string): Promise<Panchang | { error: string; details?: any }> {
+    try {
+         if (!CLIENT_ID || !CLIENT_SECRET) {
+            const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
+            console.error(errorMsg);
+            return { error: errorMsg };
+        }
+        const result = await client.getDailyPanchang(datetime, coordinates);
+        return {
+            tithi: result.tithi.name,
+            nakshatra: result.nakshatra.name,
+            yoga: result.yoga.name,
+        };
+    } catch (error: any) {
+         console.error('Error fetching daily panchang:', error);
+         return {
+            error: 'Failed to fetch panchang from Prokerala API.',
+            details: error.message || 'No additional details',
+        };
+    }
+}
 
 export async function getUpcomingFestivals(detailedError = false): Promise<Festival[] | { error: string; details?: any }> {
     try {

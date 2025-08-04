@@ -22,6 +22,7 @@ const marriageNavItems: { href: string, label: string }[] = [
 ];
 
 const toolsNavItems: { href: string, label: string }[] = [
+    { href: '/daily-panchang', label: 'Daily Panchang' },
 ];
 
 const resourcesNavItems = [
