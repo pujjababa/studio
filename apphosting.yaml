@@ -8,10 +8,4 @@ runConfig:
 # Secrets are environment variables that are managed by Google Secret Manager.
 # Provide your secret's name and version. You can create a secret by visiting
 # https://console.cloud.google.com/security/secret-manager
-secrets:
-  PROKERALA_CLIENT_ID:
-    secret: PROKERALA_CLIENT_ID
-    version: latest
-  PROKERALA_CLIENT_SECRET:
-    secret: PROKERALA_CLIENT_SECRET
-    version: latest
+secrets: {}
