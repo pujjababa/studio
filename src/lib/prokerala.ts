@@ -18,7 +18,8 @@ export async function getUpcomingFestivals(detailedError = false): Promise<Festi
             throw new Error(errorMsg);
         }
 
-        const year = new Date().getFullYear();
+        const now = new Date();
+        const year = now.getFullYear();
         // Using Mumbai, India as default coordinates
         const location = {
             latitude: 19.0760,
@@ -43,10 +44,9 @@ export async function getUpcomingFestivals(detailedError = false): Promise<Festi
             startDate: f.start_date,
         }));
         
-        if (detailedError) {
-            // @ts-ignore
-            return festivals;
-        }
+        // @ts-ignore
+        if (detailedError) { return festivals; }
+        
         return festivals;
 
     } catch (error: any) {

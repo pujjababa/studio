@@ -28,7 +28,7 @@ class ProkeralaAstrologer {
         }
         
         // Correctly join the base endpoint and the path
-        const url = new URL(`${this.apiEndpoint}/${path}`);
+        const url = new URL(`${this.apiEndpoint.replace(/\/$/, '')}/${path.replace(/^\//, '')}`);
 
         if (params) {
             Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
@@ -57,6 +57,16 @@ class ProkeralaAstrologer {
 
         return response.json();
     }
+
+    async getPanchang(datetime, coordinates, ayanamsa = 1, language = 'en') {
+        return this.get('astrology/panchang', {
+            datetime,
+            coordinates,
+            ayanamsa,
+            la: language,
+        });
+    }
+
     async getPanchangFestivals(location, year, religiousOnly, ayanamsa, language) {
         return this.get('astrology/panchang-festivals', {
             'location': `${location.latitude},${location.longitude}`,
