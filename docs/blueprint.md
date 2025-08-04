@@ -1,17 +1,19 @@
-# **App Name**: QuickGreet
+# **App Name**: PujaBaba
 
 ## Core Features:
 
-- Input Field: A simple interface with a text box.
-- AI-Powered Greeting: The app responds using a friendly tone with words appropriate to the current year using a LLM tool.
-- Greeting Display: A visually pleasing and clear presentation of the AI-generated greeting.
+- Pandit Profiles: Each verified Pandit gets a profile page, including a QR code for easy sharing.
+- QR Code Utility: Scanning the QR code leads to a landing page with options to download Puja details (PDF), book Pandit for services.
+- AI Puja Planner: Using user input for purpose (health, career, marriage, etc.) the tool will recommend type of Puja and ideal date.
+- Content Hub: Provide blog posts, videos, and tips on rituals, mantras, and fasting, with regional language support.
+- Pandit Reviews: Users can review, rate, and follow Pandits.
 
 ## Style Guidelines:
 
-- Primary color: HSL 220, 70%, 60% (RGB hex: #4A90E2) to convey a sense of calm and friendliness.
-- Background color: HSL 220, 20%, 95% (RGB hex: #F0F4F8) for a light and clean backdrop.
-- Accent color: HSL 190, 60%, 50% (RGB hex: #34A7A7) to add a touch of freshness and modernity.
-- Body and headline font: 'PT Sans', a humanist sans-serif to provide a balance of modern appeal and approachability.
-- Use simple, friendly icons to represent different greeting options (e.g., a waving hand, a speech bubble).
-- Keep the layout clean and straightforward, with the input field and greeting display prominently featured.
-- Incorporate subtle animations when the greeting is generated and displayed to create a more engaging user experience.
+- Primary color: Saffron (#FF9933), a traditional and sacred color in Hinduism, symbolizing sacrifice and courage.
+- Background color: Light beige (#F5F5DC), offering a calm and clean backdrop that ensures readability and visual comfort.
+- Accent color: Deep blue (#00308F), associated with spirituality and divinity, to highlight key interactive elements and calls to action.
+- Headline font: 'Playfair', a serif font providing elegance and tradition for headings. Body font: 'PT Sans', a sans-serif font for readability and clear presentation.
+- Use clean, simple line icons representing different aspects of Puja, deities, and religious symbols. The style should be consistent and easily recognizable.
+- Clean and structured layout, making it easy for users to find information and navigate. Use white space effectively to prevent overcrowding.
+- Subtle animations when content loads or when users interact with elements (e.g., a gentle fade-in, a button press effect). This enhances user experience without being distracting.
