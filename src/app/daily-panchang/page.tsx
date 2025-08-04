@@ -32,8 +32,8 @@ export default function DailyPanchangPage() {
         } else {
           setPanchang(result as Panchang);
         }
-      } catch (err) {
-        setError('An unexpected error occurred.');
+      } catch (err: any) {
+        setError(err.message || 'An unexpected error occurred.');
       } finally {
         setIsLoading(false);
       }
@@ -91,7 +91,11 @@ export default function DailyPanchangPage() {
                   <span className="font-bold text-lg">{panchang.yoga}</span>
                 </li>
               </ul>
-            ) : null}
+            ) : (
+                <div className="text-center text-muted-foreground p-4">
+                    No Panchang data available at the moment.
+                </div>
+            )}
           </CardContent>
         </Card>
       </div>

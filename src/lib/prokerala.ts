@@ -1,5 +1,4 @@
 
-
 import type { Festival, Panchang } from './types';
 import { ProkeralaAstrologer } from './prokerala-sdk';
 
@@ -16,12 +15,22 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
             return { error: errorMsg };
         }
         const result = await client.getDailyPanchang(datetime, coordinates);
-        const panchangData = result.data;
-
-        if (!panchangData) {
+        
+        // @ts-ignore
+        if (result.status === 'error') {
              return {
                 error: 'Failed to fetch panchang from Prokerala API.',
-                details: 'Response did not contain panchang data.',
+                // @ts-ignore
+                details: result.errors?.[0]?.detail || 'No specific error details provided.',
+            };
+        }
+        
+        const panchangData = result.data;
+
+        if (!panchangData || !panchangData.tithi || !panchangData.nakshatra || !panchangData.yoga) {
+             return {
+                error: 'Failed to fetch panchang from Prokerala API.',
+                details: 'Response did not contain complete panchang data.',
             };
         }
         

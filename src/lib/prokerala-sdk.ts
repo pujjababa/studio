@@ -51,7 +51,15 @@ class ProkeralaAstrologer {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`API request failed: ${response.statusText} - ${errorText}`);
+            console.error(`API request failed: ${response.statusText} - ${errorText}`);
+            try {
+                // Try to parse error response as JSON
+                return JSON.parse(errorText);
+            }
+            catch (e) {
+                // If not JSON, return a generic error
+                return { status: 'error', errors: [{detail: `API request failed: ${response.statusText}`}]};
+            }
         }
 
         return response.json();
