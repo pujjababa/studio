@@ -27,7 +27,9 @@ class ProkeralaAstrologer {
             await this.fetchToken();
         }
         const url = new URL(`${this.apiEndpoint}${path}`);
-        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        if (params) {
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        }
         
         let response = await fetch(url.toString(), {
             headers: {
