@@ -26,7 +26,10 @@ class ProkeralaAstrologer {
         if (!this.token) {
             await this.fetchToken();
         }
-        const url = new URL(path, this.apiEndpoint);
+        
+        // Correctly join the base endpoint and the path
+        const url = new URL(`${this.apiEndpoint}/${path}`);
+
         if (params) {
             Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
         }
