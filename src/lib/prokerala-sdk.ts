@@ -29,13 +29,13 @@ class ProkeralaAstrologer {
             await this.fetchToken();
         }
         
-        const url = new URL(`${this.apiEndpoint}/${path}`);
-
-        if (params) {
-            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-        }
+        const queryString = Object.keys(params)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            .join('&');
+            
+        const url = `${this.apiEndpoint}/${path}?${queryString}`;
         
-        let response = await fetch(url.toString(), {
+        let response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${this.token}`,
             },
@@ -44,7 +44,7 @@ class ProkeralaAstrologer {
         if (response.status === 401) {
             // Token might have expired, fetch a new one and retry
             await this.fetchToken();
-            response = await fetch(url.toString(), {
+            response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                 },
