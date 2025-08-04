@@ -1,12 +1,16 @@
 
 import type { Festival } from './types';
 
-const CLIENT_ID = '45a1b446-19c6-4155-882d-40fde1e4b601';
-const CLIENT_SECRET = 'R0NdYZuBmuMUFrfcxODU6KPmp5mQPqAY1OuHnx0n';
+const CLIENT_ID = process.env.PROKERALA_CLIENT_ID;
+const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET;
 
 const BASE_URL = 'https://api.prokerala.com/v2/astrology';
 
 async function getAuthToken() {
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+        throw new Error('Prokerala API credentials are not set in the environment variables.');
+    }
+
     const response = await fetch('https://api.prokerala.com/token', {
         method: 'POST',
         headers: {
@@ -16,6 +20,7 @@ async function getAuthToken() {
     });
 
     if (!response.ok) {
+        console.error('Prokerala auth error response:', await response.text());
         throw new Error('Failed to get auth token from Prokerala API');
     }
 
@@ -32,7 +37,7 @@ export async function getUpcomingFestivals(): Promise<Festival[]> {
         const ayanamsa = 1; // Lahiri
 
         const response = await fetch(
-            `${BASE_URL}/festivals?ayanamsa=${ayanamsa}&coordinates=${coordinates}&year=${year}&la=en`,
+            `${BASE_URL}/panchang-festivals?ayanamsa=${ayanamsa}&coordinates=${coordinates}&year=${year}&la=en`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -51,7 +56,7 @@ export async function getUpcomingFestivals(): Promise<Festival[]> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const upcoming = data.data.filter((festival: { start_date: string }) => {
+        const upcoming = data.data.festivals.filter((festival: { start_date: string }) => {
             const festivalDate = new Date(festival.start_date);
             return festivalDate >= today;
         });
