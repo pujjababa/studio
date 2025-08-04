@@ -69,7 +69,16 @@ export async function getUpcomingFestivals(detailedError = false): Promise<Festi
         const ayanamsa = 1; // Lahiri
 
         const result = await client.getPanchangFestivals(location, year, true, ayanamsa, 'en');
-        const festivalData = result.festivals;
+        
+        if (result.status === 'error') {
+            const errorDetails = result.errors?.[0]?.detail || 'No details provided';
+            if (detailedError) {
+                return { error: 'API returned an error', details: errorDetails };
+            }
+            throw new Error(`Prokerala API Error: ${errorDetails}`);
+        }
+
+        const festivalData = result.data?.festivals || [];
 
         // Filter for festivals from today onwards and take the next 5
         const today = new Date();

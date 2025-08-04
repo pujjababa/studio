@@ -17,6 +17,8 @@ class ProkeralaAstrologer {
             body: 'grant_type=client_credentials',
         });
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Failed to fetch token: ${response.statusText}`, errorText);
             throw new Error(`Failed to fetch token: ${response.statusText}`);
         }
         const data = await response.json();
@@ -62,7 +64,17 @@ class ProkeralaAstrologer {
             }
         }
 
-        return response.json();
+        const jsonResponse = await response.json();
+
+        if (jsonResponse.status === 'error') {
+            return jsonResponse;
+        }
+
+        // Ensure data exists before returning
+        return {
+            status: 'success',
+            data: jsonResponse.data ?? {}
+        };
     }
 
     async getDailyPanchang(datetime, coordinates, ayanamsa = 1, language = 'en') {
