@@ -16,11 +16,9 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
         }
         const result = await client.getDailyPanchang(datetime, coordinates);
         
-        // @ts-ignore
         if (result.status === 'error') {
              return {
                 error: 'Failed to fetch panchang from Prokerala API.',
-                // @ts-ignore
                 details: result.errors?.[0]?.detail || 'No specific error details provided.',
             };
         }
