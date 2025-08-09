@@ -47,41 +47,29 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
 
         // Using Mumbai, India as default coordinates
         const coordinates = '19.0760,72.8777';
-        const daysToFetch = 60;
-        const festivals: Festival[] = [];
-        let logged = false;
+        // The number of days to fetch festivals for.
+        const days = 30;
 
-        for (let i = 0; i < daysToFetch; i++) {
-            if (festivals.length >= 5) {
-                break;
-            }
-            
-            const date = new Date();
-            date.setDate(date.getDate() + i);
-            const formattedDate = getFormattedProkeralaDate(date);
+        const result = await client.getUpcomingFestivals(coordinates, days);
 
-            const result = await getDailyPanchang(formattedDate, coordinates);
-            
-            // @ts-ignore
-            if (result && !result.error && result.festival?.name) {
-                // @ts-ignore
-                if (!logged) {
-                    // console.log(JSON.stringify(result, null, 2));
-                    logged = true;
-                }
-                 // @ts-ignore
-                festivals.push({
-                    name: result.festival.name,
-                    startDate: date.toISOString().split('T')[0],
-                     // @ts-ignore
-                    description: result.festival.description,
-                     // @ts-ignore
-                    tithi: result.tithi?.name,
-                });
-            }
+        if (result.status === 'error' || !result.data) {
+             console.error('Prokerala API Error in getUpcomingFestivals:', result.errors);
+             return {
+                error: 'Failed to fetch upcoming festivals from Prokerala API.',
+                details: result.errors?.[0]?.detail || 'No specific error details provided.',
+            };
         }
         
-        return festivals;
+        // The API returns festivals inside a nested `festivals` array.
+        const festivals = result.data.festivals.map((f: any) => ({
+            name: f.name,
+            startDate: f.date,
+            description: f.description,
+            tithi: f.tithi,
+        }));
+        
+        // Return first 5 festivals
+        return festivals.slice(0, 5);
 
     } catch (error: any) {
         console.error('Error fetching upcoming festivals:', error);

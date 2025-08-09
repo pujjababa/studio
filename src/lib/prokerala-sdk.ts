@@ -52,9 +52,14 @@ class ProkeralaAstrologer {
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`API request failed: ${response.statusText} - ${errorText}`);
-             return { status: 'error', errors: [{detail: `API request failed: ${response.statusText}`}]};
+            let errorDetails = '';
+            try {
+                const errorJson = await response.json();
+                errorDetails = errorJson.errors?.[0]?.detail || JSON.stringify(errorJson);
+            } catch (e) {
+                errorDetails = await response.text();
+            }
+             return { status: 'error', errors: [{detail: `${response.statusText}: ${errorDetails}`}]};
         }
         
         return response.json();
@@ -66,6 +71,15 @@ class ProkeralaAstrologer {
             coordinates,
             ayanamsa,
             la: language,
+        });
+    }
+
+    async getUpcomingFestivals(coordinates, days, ayanamsa = 1, language = 'en') {
+        return this.get('/v2/astrology/panchang/upcoming-festivals', {
+            coordinates,
+            days,
+            ayanamsa,
+            la: language
         });
     }
 }
