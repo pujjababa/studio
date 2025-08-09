@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { MandirIcon } from '@/components/icons/MandirIcon';
 import { Github, Twitter, Youtube } from 'lucide-react';
@@ -50,6 +51,7 @@ export function Footer() {
              <div>
               <h3 className="font-semibold font-headline tracking-wider">Contact</h3>
               <ul className="mt-4 space-y-2">
+                <li><Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors">Admin</Link></li>
                 <li><Link href="#" className="text-muted-foreground hover:text-primary transition-colors">About Us</Link></li>
                 <li><Link href="#" className="text-muted-foreground hover:text-primary transition-colors">Contact Us</Link></li>
                 <li><Link href="#" className="text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
