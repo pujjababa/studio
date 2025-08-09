@@ -2,9 +2,9 @@
 import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset } from 'lucide-react';
+import { pujaKitsData } from '@/lib/puja-kits-data';
+import { PujaKit } from '@/components/PujaKit';
 
 const DetailRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
     <div className="flex items-start justify-between py-3 border-b last:border-b-0">
@@ -20,19 +20,17 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
     const dateStr = params.date;
     const date = new Date(dateStr);
 
-    // Basic date validation
     if (isNaN(date.getTime())) {
         notFound();
     }
     
-    // The panchang is calculated for UTC noon to get a stable value for the whole day
     date.setUTCHours(12, 0, 0, 0);
 
     const panchang = getPanchang(date);
     const festival = getFestivalByDate(dateStr);
+    const pujaKit = festival ? pujaKitsData.find(k => k.festival_hindi === festival.name) : undefined;
 
     if (!panchang) {
-        // Handle case where panchang calculation might fail, though unlikely with current setup
         return <div>Could not calculate Panchang for this date.</div>
     }
 
@@ -46,7 +44,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
 
     return (
         <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-12">
                 <Card>
                     <CardHeader className="text-center">
                         <Calendar className="h-12 w-12 mx-auto text-primary mb-4" />
@@ -68,26 +66,16 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                              <DetailRow icon={<Sunrise className="h-6 w-6 text-amber-500" />} label="सूर्योदय (Sunrise)" value={panchang.sunrise} />
                              <DetailRow icon={<Sunset className="h-6 w-6 text-orange-600" />} label="सूर्यास्त (Sunset)" value={panchang.sunset} />
                         </div>
-                        {festival && (
-                            <div className="mt-8 pt-6 border-t text-center">
-                                <Button asChild size="lg" className="mt-4">
-                                    <Link href={`/puja-kits/${encodeURIComponent(festival.name)}`}>
-                                        <ShoppingCart className="mr-2 h-5 w-5" /> Get Puja Kit for {festival.name}
-                                    </Link>
-                                </Button>
-                            </div>
-                        )}
                     </CardContent>
                 </Card>
+
+                {pujaKit && <PujaKit kit={pujaKit} />}
             </div>
         </div>
     );
 }
 
-// Generate static paths for upcoming festivals to improve performance
 export async function generateStaticParams() {
-    // This function is optional but good for performance.
-    // We can pre-render pages for the next few days.
     const paths = Array.from({ length: 90 }).map((_, i) => {
         const date = new Date();
         date.setDate(date.getDate() + i);
