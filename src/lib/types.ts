@@ -8,6 +8,7 @@ export interface PujaSamagri {
 }
 
 export interface PujaKit {
+    _id?: string; // MongoDB ID
     festival_hindi: string;
     festival_english: string;
     total_price_inr: number;

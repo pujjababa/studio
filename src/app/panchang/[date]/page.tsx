@@ -1,11 +1,9 @@
-
-
 import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset, CalendarDays } from 'lucide-react';
-import { pujaKitsData } from '@/lib/puja-kits-data';
 import { PujaKit } from '@/components/PujaKit';
+import { getPujaKitByFestival } from '@/services/puja-kits.service';
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
     <div className="flex items-center space-x-2">
@@ -18,7 +16,7 @@ const DetailItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 );
 
 
-export default function PanchangDetailPage({ params }: { params: { date: string } }) {
+export default async function PanchangDetailPage({ params }: { params: { date: string } }) {
     const dateStr = params.date;
     const date = new Date(dateStr);
 
@@ -39,7 +37,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
         festival = getFestivalByDate(nextDateStr);
     }
     
-    const pujaKit = festival ? pujaKitsData.find(k => k.festival_english === festival?.name) : undefined;
+    const pujaKit = festival ? await getPujaKitByFestival(festival.name) : undefined;
 
     if (!panchang) {
         return <div>Could not calculate Panchang for this date.</div>
