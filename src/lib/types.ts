@@ -51,5 +51,8 @@ export interface Panchang {
     tithi: { name: string };
     nakshatra: { name: string };
     yoga: { name: string };
-    festival?: { name: string; description?: string };
+    festival?: {
+        name: string;
+        description?: string;
+    };
 }

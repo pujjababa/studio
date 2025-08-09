@@ -8,7 +8,7 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET ?? '';
 
 const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
 
-export async function getDailyPanchang(datetime: string, coordinates: string): Promise<any | { error: string; details?: any }> {
+export async function getDailyPanchang(datetime: string, coordinates: string): Promise<Panchang | { error: string; details?: any }> {
     try {
          if (!CLIENT_ID || !CLIENT_SECRET) {
             const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
@@ -18,7 +18,7 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
         
         const result = await client.getDailyPanchang(datetime, coordinates);
         
-        if (result.status === 'error') {
+        if (result.status === 'error' || !result.data) {
              console.error('Prokerala API Error in getDailyPanchang:', result.errors);
              return {
                 error: 'Failed to fetch panchang from Prokerala API.',
@@ -26,7 +26,7 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
             };
         }
         
-        return result.data;
+        return result.data as Panchang;
 
     } catch (error: any) {
          console.error('Exception in getDailyPanchang:', error);
@@ -49,6 +49,7 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
         const coordinates = '19.0760,72.8777';
         const daysToFetch = 60;
         const festivals: Festival[] = [];
+        let logged = false;
 
         for (let i = 0; i < daysToFetch; i++) {
             if (festivals.length >= 5) {
@@ -57,16 +58,24 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
             
             const date = new Date();
             date.setDate(date.getDate() + i);
-            const isoDate = date.toISOString().split('T')[0];
             const formattedDate = getFormattedProkeralaDate(date);
 
             const result = await getDailyPanchang(formattedDate, coordinates);
             
+            // @ts-ignore
             if (result && !result.error && result.festival?.name) {
+                // @ts-ignore
+                if (!logged) {
+                    // console.log(JSON.stringify(result, null, 2));
+                    logged = true;
+                }
+                 // @ts-ignore
                 festivals.push({
                     name: result.festival.name,
-                    startDate: isoDate,
+                    startDate: date.toISOString().split('T')[0],
+                     // @ts-ignore
                     description: result.festival.description,
+                     // @ts-ignore
                     tithi: result.tithi?.name,
                 });
             }

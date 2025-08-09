@@ -80,15 +80,15 @@ export default function DailyPanchangPage() {
               <ul className="divide-y">
                 <li className="flex justify-between items-center py-3">
                   <span className="font-semibold text-muted-foreground">Tithi</span>
-                  <span className="font-bold text-lg">{panchang.tithi}</span>
+                  <span className="font-bold text-lg">{panchang.tithi.name}</span>
                 </li>
                 <li className="flex justify-between items-center py-3">
                   <span className="font-semibold text-muted-foreground">Nakshatra</span>
-                  <span className="font-bold text-lg">{panchang.nakshatra}</span>
+                  <span className="font-bold text-lg">{panchang.nakshatra.name}</span>
                 </li>
                 <li className="flex justify-between items-center py-3">
                   <span className="font-semibold text-muted-foreground">Yoga</span>
-                  <span className="font-bold text-lg">{panchang.yoga}</span>
+                  <span className="font-bold text-lg">{panchang.yoga.name}</span>
                 </li>
               </ul>
             ) : (
