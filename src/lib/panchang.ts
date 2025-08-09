@@ -1,7 +1,7 @@
 
 import type { Festival, Panchang } from './types';
 import { festivalRules } from './festival-rules';
-import { DEG2RAD } from './panchang-utils';
+import { DEG2RAD, RAD2DEG } from './panchang-utils';
 
 function toJulianDate(date: Date): number {
   return date.getTime() / 86400000 + 2440587.5;
@@ -27,7 +27,32 @@ function moonLongitude(jd: number): number {
   return normalizeAngle(lambda);
 }
 
-export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "purnimanta"): Panchang {
+// Simplified sunrise/sunset for a given latitude. Returns HH:MM string.
+// Note: This is a simplified calculation for demonstration.
+// For high precision, a more complex library or ephemeris data is needed.
+function getSunriseSunset(date: Date, lat: number, lon: number): { sunrise: string; sunset: string } {
+    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
+    const declination = -23.45 * Math.cos(DEG2RAD * 360 * (dayOfYear + 10) / 365);
+    const hourAngle = Math.acos(-Math.tan(lat * DEG2RAD) * Math.tan(declination * DEG2RAD)) * RAD2DEG;
+    
+    const sunriseUTC = 12 - hourAngle / 15 - lon / 15;
+    const sunsetUTC = 12 + hourAngle / 15 - lon / 15;
+
+    const formatTime = (utcHour: number) => {
+        if(isNaN(utcHour)) return "N/A";
+        const hours = Math.floor(utcHour);
+        const minutes = Math.floor((utcHour - hours) * 60);
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} (UTC)`;
+    }
+
+    return {
+        sunrise: formatTime(sunriseUTC),
+        sunset: formatTime(sunsetUTC)
+    };
+}
+
+
+export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "purnimanta", lat = 28.6139, lon = 77.2090): Panchang {
   const jd = toJulianDate(date);
   const sunLon = sunLongitude(jd);
   const moonLon = moonLongitude(jd);
@@ -62,13 +87,17 @@ export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "
     }
   }
 
+  const { sunrise, sunset } = getSunriseSunset(date, lat, lon);
+
   return {
     tithi: tithiNames[tithiNum - 1],
     paksha,
     month: monthNames[monthIndex],
     nakshatra: nakshatraNames[nakshatraNum],
     yoga: yogaNames[yogaNum],
-    karana: karanaNames[karanaNum % 11]
+    karana: karanaNames[karanaNum % 11],
+    sunrise,
+    sunset
   };
 }
 

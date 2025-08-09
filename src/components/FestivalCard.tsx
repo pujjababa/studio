@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -9,15 +9,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { Festival } from '@/lib/types';
-import { FestivalPanchangModal } from './FestivalPanchangModal';
 
 interface FestivalCardProps {
   festival: Festival;
 }
 
 export function FestivalCard({ festival }: FestivalCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const date = new Date(festival.date);
   // Adjust for timezone to show correct date
   const userTimezoneOffset = date.getTimezoneOffset() * 60000;
@@ -28,10 +25,9 @@ export function FestivalCard({ festival }: FestivalCardProps) {
   const dayOfWeek = localDate.toLocaleDateString('en-US', { weekday: 'long' });
 
   return (
-    <>
+    <Link href={`/panchang/${festival.date}`} className="block">
       <Card
-        onClick={() => setIsModalOpen(true)}
-        className="flex flex-col text-center items-center justify-between p-4 transition-transform transform hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+        className="flex flex-col text-center items-center justify-between p-4 transition-transform transform hover:-translate-y-1 hover:shadow-lg cursor-pointer h-full"
       >
         <CardHeader className="p-2">
           <p className="font-bold text-sm text-primary">{month}</p>
@@ -45,11 +41,6 @@ export function FestivalCard({ festival }: FestivalCardProps) {
           {festival.tithi ? `${festival.tithi}, ${dayOfWeek}` : dayOfWeek}
         </CardDescription>
       </Card>
-      <FestivalPanchangModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        festival={festival}
-      />
-    </>
+    </Link>
   );
 }
