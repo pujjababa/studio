@@ -1,5 +1,18 @@
 
+export interface PujaSamagri {
+    item_hindi: string;
+    item_english: string;
+    quantity: number;
+    unit: string;
+    price_inr: number;
+}
 
+export interface PujaKit {
+    festival_hindi: string;
+    festival_english: string;
+    total_price_inr: number;
+    puja_samagri: PujaSamagri[];
+}
 
 
 export interface Pandit {

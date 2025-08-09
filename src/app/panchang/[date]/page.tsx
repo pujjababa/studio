@@ -1,5 +1,5 @@
 
-import { getPanchang } from '@/lib/panchang';
+import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset, ShoppingCart } from 'lucide-react';
@@ -29,6 +29,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
     date.setUTCHours(12, 0, 0, 0);
 
     const panchang = getPanchang(date);
+    const festival = getFestivalByDate(dateStr);
 
     if (!panchang) {
         // Handle case where panchang calculation might fail, though unlikely with current setup
@@ -49,7 +50,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                 <Card>
                     <CardHeader className="text-center">
                         <Calendar className="h-12 w-12 mx-auto text-primary mb-4" />
-                        <CardTitle className="font-headline text-4xl">Panchang</CardTitle>
+                        <CardTitle className="font-headline text-4xl">{festival?.name || 'Panchang'}</CardTitle>
                         <CardDescription className="text-xl text-muted-foreground">
                             {formattedDate}
                         </CardDescription>
@@ -67,13 +68,15 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                              <DetailRow icon={<Sunrise className="h-6 w-6 text-amber-500" />} label="सूर्योदय (Sunrise)" value={panchang.sunrise} />
                              <DetailRow icon={<Sunset className="h-6 w-6 text-orange-600" />} label="सूर्यास्त (Sunset)" value={panchang.sunset} />
                         </div>
-                        <div className="mt-8 pt-6 border-t text-center">
-                            <Button asChild size="lg" className="mt-4">
-                                <Link href="/puja-kits">
-                                    <ShoppingCart className="mr-2 h-5 w-5" /> Shop for Puja Kits
-                                </Link>
-                            </Button>
-                        </div>
+                        {festival && (
+                            <div className="mt-8 pt-6 border-t text-center">
+                                <Button asChild size="lg" className="mt-4">
+                                    <Link href={`/puja-kits/${encodeURIComponent(festival.name)}`}>
+                                        <ShoppingCart className="mr-2 h-5 w-5" /> Get Puja Kit for {festival.name}
+                                    </Link>
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

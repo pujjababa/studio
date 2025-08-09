@@ -25,7 +25,7 @@ const toolsNavItems: { href: string, label: string }[] = [
 ];
 
 const resourcesNavItems = [
-    { href: '/puja-kits', label: 'Puja Kits' },
+    { href: '/puja-kits/मकर संक्रांति', label: 'Puja Kits' },
     { href: '/content-hub', label: 'Content Hub' },
     { href: '/remedies-hub', label: 'Remedies' },
     { href: '/temple-tracker', label: 'Temple Tracker' },

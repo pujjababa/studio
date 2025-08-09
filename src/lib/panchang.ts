@@ -132,3 +132,27 @@ export function getUpcomingFestivals(days = 90, monthSystem: "purnimanta" | "ama
   
   return results.slice(0, 5);
 }
+
+
+export function getFestivalByDate(dateStr: string, monthSystem: "purnimanta" | "amanta" = "purnimanta"): Festival | undefined {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    return undefined;
+  }
+  date.setUTCHours(12, 0, 0, 0);
+
+  const panchang = getPanchang(date, monthSystem);
+  const festivalRule = festivalRules.find(
+    f => f.month === panchang.month && f.paksha === panchang.paksha && f.tithi === panchang.tithi
+  );
+  
+  if (festivalRule) {
+    return {
+      name: festivalRule.name,
+      date: date.toISOString().split("T")[0],
+      description: `${panchang.paksha} Paksha, ${panchang.month}`,
+      ...panchang
+    }
+  }
+  return undefined;
+}
