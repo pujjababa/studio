@@ -8,11 +8,11 @@ import { pujaKitsData } from '@/lib/puja-kits-data';
 import { PujaKit } from '@/components/PujaKit';
 
 const DetailItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center space-x-2">
         <div className="flex-shrink-0 text-primary">{icon}</div>
         <div>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="font-semibold text-base md:text-lg">{value || 'N/A'}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="font-semibold text-sm md:text-base">{value || 'N/A'}</p>
         </div>
     </div>
 );
@@ -45,13 +45,13 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
     });
 
     const panchangDetails = [
-        { icon: <Calendar className="h-6 w-6 md:h-8 md:w-8" />, label: "Tithi (तिथि)", value: panchang.tithi },
-        { icon: <Moon className="h-6 w-6 md:h-8 md:w-8" />, label: "Paksha (पक्ष)", value: panchang.paksha },
-        { icon: <Star className="h-6 w-6 md:h-8 md:w-8" />, label: "Nakshatra (नक्षत्र)", value: panchang.nakshatra },
-        { icon: <Zap className="h-6 w-6 md:h-8 md:w-8" />, label: "Yoga (योग)", value: panchang.yoga },
-        { icon: <Waves className="h-6 w-6 md:h-8 md:w-8" />, label: "Karana (करण)", value: panchang.karana },
-        { icon: <Sunrise className="h-6 w-6 md:h-8 md:w-8" />, label: "Sunrise (सूर्योदय)", value: panchang.sunrise },
-        { icon: <Sunset className="h-6 w-6 md:h-8 md:w-8" />, label: "Sunset (सूर्यास्त)", value: panchang.sunset },
+        { icon: <Calendar className="h-5 w-5 md:h-6 md:w-6" />, label: "Tithi (तिथि)", value: panchang.tithi },
+        { icon: <Moon className="h-5 w-5 md:h-6 md:w-6" />, label: "Paksha (पक्ष)", value: panchang.paksha },
+        { icon: <Star className="h-5 w-5 md:h-6 md:w-6" />, label: "Nakshatra (नक्षत्र)", value: panchang.nakshatra },
+        { icon: <Zap className="h-5 w-5 md:h-6 md:w-6" />, label: "Yoga (योग)", value: panchang.yoga },
+        { icon: <Waves className="h-5 w-5 md:h-6 md:w-6" />, label: "Karana (करण)", value: panchang.karana },
+        { icon: <Sunrise className="h-5 w-5 md:h-6 md:w-6" />, label: "Sunrise (सूर्योदय)", value: panchang.sunrise },
+        { icon: <Sunset className="h-5 w-5 md:h-6 md:w-6" />, label: "Sunset (सूर्यास्त)", value: panchang.sunset },
     ];
 
     return (
@@ -70,7 +70,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                         <CardTitle className="font-headline text-3xl">Daily Panchang Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 md:gap-y-8 gap-x-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 md:gap-y-8 gap-x-4">
                             {panchangDetails.map((detail) => (
                                 <DetailItem key={detail.label} {...detail} />
                             ))}
