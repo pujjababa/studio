@@ -1,4 +1,5 @@
 
+
 import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,12 +8,12 @@ import { pujaKitsData } from '@/lib/puja-kits-data';
 import { PujaKit } from '@/components/PujaKit';
 
 const DetailRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
-    <div className="flex items-start justify-between py-3 border-b last:border-b-0">
-        <div className="flex items-center gap-4 text-md text-muted-foreground">
+    <div className="flex items-center justify-between py-2 border-b last:border-b-0">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {icon}
             <span>{label}</span>
         </div>
-        <span className="font-semibold text-md text-foreground text-right">{value || 'N/A'}</span>
+        <span className="font-semibold text-sm text-foreground text-right">{value || 'N/A'}</span>
     </div>
 );
 
@@ -55,16 +56,16 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                     </CardHeader>
                     <CardContent className="p-6 md:p-8">
                         <div className="space-y-2">
-                             <DetailRow icon={<Calendar className="h-6 w-6 text-primary" />} label="तिथि (Tithi)" value={panchang.tithi} />
-                            <DetailRow icon={<Moon className="h-6 w-6 text-primary" />} label="पक्ष (Paksha)" value={panchang.paksha} />
-                            <DetailRow icon={<Star className="h-6 w-6 text-primary" />} label="नक्षत्र (Nakshatra)" value={panchang.nakshatra} />
-                            <DetailRow icon={<Zap className="h-6 w-6 text-primary" />} label="योग (Yoga)" value={panchang.yoga} />
-                            <DetailRow icon={<Waves className="h-6 w-6 text-primary" />} label="करण (Karana)" value={panchang.karana} />
+                             <DetailRow icon={<Calendar className="h-5 w-5 text-primary" />} label="तिथि (Tithi)" value={panchang.tithi} />
+                            <DetailRow icon={<Moon className="h-5 w-5 text-primary" />} label="पक्ष (Paksha)" value={panchang.paksha} />
+                            <DetailRow icon={<Star className="h-5 w-5 text-primary" />} label="नक्षत्र (Nakshatra)" value={panchang.nakshatra} />
+                            <DetailRow icon={<Zap className="h-5 w-5 text-primary" />} label="योग (Yoga)" value={panchang.yoga} />
+                            <DetailRow icon={<Waves className="h-5 w-5 text-primary" />} label="करण (Karana)" value={panchang.karana} />
                         </div>
                          <div className="mt-8 pt-6 border-t">
                             <h3 className="text-center font-headline text-2xl mb-4">Timings</h3>
-                             <DetailRow icon={<Sunrise className="h-6 w-6 text-amber-500" />} label="सूर्योदय (Sunrise)" value={panchang.sunrise} />
-                             <DetailRow icon={<Sunset className="h-6 w-6 text-orange-600" />} label="सूर्यास्त (Sunset)" value={panchang.sunset} />
+                             <DetailRow icon={<Sunrise className="h-5 w-5 text-amber-500" />} label="सूर्योदय (Sunrise)" value={panchang.sunrise} />
+                             <DetailRow icon={<Sunset className="h-5 w-5 text-orange-600" />} label="सूर्यास्त (Sunset)" value={panchang.sunset} />
                         </div>
                     </CardContent>
                 </Card>
