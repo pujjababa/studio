@@ -1,4 +1,3 @@
-
 import { getAllPujaKits } from "@/services/puja-kits.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +18,7 @@ export default async function AdminDashboard() {
                         <CardDescription>Manage Puja Kits</CardDescription>
                     </div>
                     <Button asChild>
-                        <Link href="/admin/kits/new">
+                        <Link href="/admin/kits/new/edit">
                             <PlusCircle className="mr-2 h-5 w-5" />
                             Create New Kit
                         </Link>
