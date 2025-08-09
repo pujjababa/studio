@@ -1,5 +1,6 @@
 
 
+
 export interface Pandit {
   id: string;
   name: string;
@@ -45,14 +46,18 @@ export interface Festival {
   date: string;
   description?: string;
   tithi?: string;
+  paksha?: string;
+  month?: string;
+  nakshatra?: string;
+  yoga?: string;
+  karana?: string;
 }
 
 export interface Panchang {
-    tithi: { name: string };
-    nakshatra: { name: string };
-    yoga: { name: string };
-    festival?: {
-        name: string;
-        description?: string;
-    };
+    tithi: string;
+    paksha: string;
+    month: string;
+    nakshatra: string;
+    yoga: string;
+    karana: string;
 }

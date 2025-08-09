@@ -1,7 +1,7 @@
-import type { Festival } from './types';
+
+import type { Festival, Panchang } from './types';
 import { festivalRules } from './festival-rules';
 import { DEG2RAD } from './panchang-utils';
-
 
 function toJulianDate(date: Date): number {
   return date.getTime() / 86400000 + 2440587.5;
@@ -11,7 +11,6 @@ function normalizeAngle(angle: number): number {
   return (angle % 360 + 360) % 360;
 }
 
-// Sun's geocentric longitude
 function sunLongitude(jd: number): number {
   const n = jd - 2451545.0;
   const L = normalizeAngle(280.46646 + 0.98564736 * n);
@@ -20,7 +19,6 @@ function sunLongitude(jd: number): number {
   return normalizeAngle(lambda);
 }
 
-// Moon's geocentric longitude
 function moonLongitude(jd: number): number {
   const n = jd - 2451545.0;
   const L = normalizeAngle(218.316 + 13.176396 * n);
@@ -29,34 +27,37 @@ function moonLongitude(jd: number): number {
   return normalizeAngle(lambda);
 }
 
-export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "purnimanta"): { tithi: string, paksha: string, month: string } {
+export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "purnimanta"): Panchang {
   const jd = toJulianDate(date);
   const sunLon = sunLongitude(jd);
   const moonLon = moonLongitude(jd);
 
+  // Tithi calculation
   const tithiNum = Math.floor(normalizeAngle(moonLon - sunLon) / 12) + 1;
   const paksha = tithiNum <= 15 ? "Shukla" : "Krishna";
+  const tithiNames = ["Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi","Saptami","Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi","Chaturdashi","Purnima","Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi","Saptami","Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi","Chaturdashi","Amavasya"];
 
-  const tithiNames = [
-    "Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi","Saptami",
-    "Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi","Chaturdashi",
-    "Purnima","Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi",
-    "Saptami","Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi",
-    "Chaturdashi","Amavasya"
-  ];
+  // Nakshatra calculation
+  const nakshatraDivision = 360 / 27;
+  const nakshatraNum = Math.floor(moonLon / nakshatraDivision);
+  const nakshatraNames = ["Ashwini","Bharani","Krittika","Rohini","Mrigashira","Ardra","Punarvasu","Pushya","Ashlesha","Magha","Purva Phalguni","Uttara Phalguni","Hasta","Chitra","Swati","Vishakha","Anuradha","Jyeshtha","Mula","Purva Ashadha","Uttara Ashadha","Shravana","Dhanishtha","Shatabhisha","Purva Bhadrapada","Uttara Bhadrapada","Revati"];
 
-  const monthNames = [
-    "Chaitra","Vaishakha","Jyeshtha","Ashadha","Shravana","Bhadrapada",
-    "Ashwin","Kartika","Margashirsha","Pausha","Magha","Phalguna"
-  ];
+  // Yoga calculation
+  const yogaDivision = 360 / 27;
+  const yogaNum = Math.floor(normalizeAngle(sunLon + moonLon) / yogaDivision);
+  const yogaNames = ["Vishkambha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarman", "Dhriti", "Shula", "Ganda", "Vriddhi", "Dhruva", "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyana", "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha", "Shukla", "Brahma", "Indra", "Vaidhriti"];
+
+  // Karana calculation
+  const karanaNum = Math.floor(normalizeAngle(moonLon - sunLon) / 6);
+  const karanaNames = ["Bava", "Balava", "Kaulava", "Taitila", "Garaja", "Vanija", "Visti", "Shakuni", "Chatushpada", "Naga", "Kintughna"];
+  
+  // Month calculation
+  const monthNames = ["Chaitra","Vaishakha","Jyeshtha","Ashadha","Shravana","Bhadrapada","Ashwin","Kartika","Margashirsha","Pausha","Magha","Phalguna"];
   let monthIndex = Math.floor(sunLon / 30);
-
   if (monthSystem === "amanta") {
-    // South India month adjustment
     if (paksha === "Krishna" && tithiNum > 15) monthIndex = (monthIndex + 1) % 12;
   } else {
-    // Purnimanta (North India) adjustment
-     if (tithiNum > 15) { // Krishna paksha
+     if (tithiNum > 15) {
         monthIndex = (monthIndex + 1) % 12;
     }
   }
@@ -64,7 +65,10 @@ export function getPanchang(date: Date, monthSystem: "purnimanta" | "amanta" = "
   return {
     tithi: tithiNames[tithiNum - 1],
     paksha,
-    month: monthNames[monthIndex]
+    month: monthNames[monthIndex],
+    nakshatra: nakshatraNames[nakshatraNum],
+    yoga: yogaNames[yogaNum],
+    karana: karanaNames[karanaNum % 11]
   };
 }
 
@@ -76,28 +80,26 @@ export function getUpcomingFestivals(days = 90, monthSystem: "purnimanta" | "ama
   for (let i = 0; i < days; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
-
-    const { tithi, paksha, month } = getPanchang(date, monthSystem);
+    const panchang = getPanchang(date, monthSystem);
 
     const todaysFestivals = festivalRules.filter(
-      f => f.month === month && f.paksha === paksha && f.tithi === tithi
+      f => f.month === panchang.month && f.paksha === panchang.paksha && f.tithi === panchang.tithi
     );
 
     if (todaysFestivals.length > 0) {
-        todaysFestivals.forEach(f => {
-            if (!addedFestivals.has(f.name)) {
-                results.push({
-                    name: f.name,
-                    date: date.toISOString().split("T")[0],
-                    tithi: tithi,
-                    description: `${paksha} Paksha, ${month}`
-                });
-                addedFestivals.add(f.name);
-            }
-        })
+      todaysFestivals.forEach(f => {
+        if (!addedFestivals.has(f.name)) {
+          results.push({
+            name: f.name,
+            date: date.toISOString().split("T")[0],
+            description: `${panchang.paksha} Paksha, ${panchang.month}`,
+            ...panchang
+          });
+          addedFestivals.add(f.name);
+        }
+      });
     }
   }
   
-  // Return only the next 5 festivals
   return results.slice(0, 5);
 }
