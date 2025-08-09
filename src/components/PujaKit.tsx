@@ -49,7 +49,7 @@ export function PujaKit({ kit }: PujaKitProps) {
         <Card className="max-w-4xl mx-auto">
             <CardHeader className="text-center">
                 <Package className="h-12 w-12 mx-auto text-primary mb-4" />
-                <CardTitle className="font-headline text-4xl">{kit.festival_hindi} - Puja Samagri</CardTitle>
+                <CardTitle className="font-headline text-4xl">{kit.festival_english} - Puja Samagri</CardTitle>
                 <CardDescription className="text-xl text-muted-foreground">
                     Your customizable puja kit for {kit.festival_english}.
                 </CardDescription>
