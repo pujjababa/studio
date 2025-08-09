@@ -43,6 +43,8 @@ export interface Temple {
 export interface Festival {
   name: string;
   startDate: string;
+  description?: string;
+  tithi?: string;
 }
 
 export interface Panchang {
