@@ -29,8 +29,17 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
     date.setUTCHours(12, 0, 0, 0);
 
     const panchang = getPanchang(date);
-    const festival = getFestivalByDate(dateStr);
-    const pujaKit = festival ? pujaKitsData.find(k => k.festival_english === festival.name) : undefined;
+
+    // To handle calculation discrepancies, check the current day and the next for a festival.
+    let festival = getFestivalByDate(dateStr);
+    if (!festival) {
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + 1);
+        const nextDateStr = nextDate.toISOString().split('T')[0];
+        festival = getFestivalByDate(nextDateStr);
+    }
+    
+    const pujaKit = festival ? pujaKitsData.find(k => k.festival_english === festival?.name) : undefined;
 
     if (!panchang) {
         return <div>Could not calculate Panchang for this date.</div>
