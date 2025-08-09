@@ -1,23 +1,19 @@
 
-
 import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset } from 'lucide-react';
 import { pujaKitsData } from '@/lib/puja-kits-data';
 import { PujaKit } from '@/components/PujaKit';
-import { cn } from '@/lib/utils';
 
-const PanchangDetailCard = ({ icon, label, value, className }: { icon: React.ReactNode, label: string, value?: string, className?: string }) => (
-    <Card className={cn("text-center flex flex-col items-center justify-center p-4 aspect-square", className)}>
-        <CardHeader className="p-2">
-            {icon}
-        </CardHeader>
-        <CardContent className="p-2 flex-grow flex flex-col justify-center items-center">
-            <p className="font-semibold text-sm md:text-base">{value || 'N/A'}</p>
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-        </CardContent>
-    </Card>
+const DetailItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
+    <div className="flex items-center space-x-4">
+        <div className="flex-shrink-0 text-primary">{icon}</div>
+        <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="font-semibold text-lg">{value || 'N/A'}</p>
+        </div>
+    </div>
 );
 
 
@@ -48,17 +44,14 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
     });
 
     const panchangDetails = [
-        { icon: <Calendar className="h-8 w-8 text-primary" />, label: "तिथि (Tithi)", value: panchang.tithi },
-        { icon: <Moon className="h-8 w-8 text-primary" />, label: "पक्ष (Paksha)", value: panchang.paksha },
-        { icon: <Star className="h-8 w-8 text-primary" />, label: "नक्षत्र (Nakshatra)", value: panchang.nakshatra },
-        { icon: <Zap className="h-8 w-8 text-primary" />, label: "योग (Yoga)", value: panchang.yoga },
-        { icon: <Waves className="h-8 w-8 text-primary" />, label: "करण (Karana)", value: panchang.karana },
+        { icon: <Calendar className="h-8 w-8" />, label: "Tithi (तिथि)", value: panchang.tithi },
+        { icon: <Moon className="h-8 w-8" />, label: "Paksha (पक्ष)", value: panchang.paksha },
+        { icon: <Star className="h-8 w-8" />, label: "Nakshatra (नक्षत्र)", value: panchang.nakshatra },
+        { icon: <Zap className="h-8 w-8" />, label: "Yoga (योग)", value: panchang.yoga },
+        { icon: <Waves className="h-8 w-8" />, label: "Karana (करण)", value: panchang.karana },
+        { icon: <Sunrise className="h-8 w-8" />, label: "Sunrise (सूर्योदय)", value: panchang.sunrise },
+        { icon: <Sunset className="h-8 w-8" />, label: "Sunset (सूर्यास्त)", value: panchang.sunset },
     ];
-
-    const timingDetails = [
-        { icon: <Sunrise className="h-8 w-8 text-amber-500" />, label: "सूर्योदय (Sunrise)", value: panchang.sunrise },
-        { icon: <Sunset className="h-8 w-8 text-orange-600" />, label: "सूर्यास्त (Sunset)", value: panchang.sunset },
-    ]
 
     return (
         <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
@@ -71,22 +64,18 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                     </p>
                 </div>
 
-                <div>
-                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {panchangDetails.map((detail) => (
-                            <PanchangDetailCard key={detail.label} {...detail} />
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <h3 className="text-center font-headline text-3xl mb-6">Timings</h3>
-                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                        {timingDetails.map((detail) => (
-                            <PanchangDetailCard key={detail.label} {...detail} />
-                        ))}
-                    </div>
-                </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-3xl">Daily Panchang Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-4">
+                            {panchangDetails.map((detail) => (
+                                <DetailItem key={detail.label} {...detail} />
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
 
 
                 {pujaKit && <PujaKit kit={pujaKit} />}
