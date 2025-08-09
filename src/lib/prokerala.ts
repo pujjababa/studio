@@ -1,9 +1,10 @@
+
 import type { Festival, Panchang } from './types';
 import { ProkeralaAstrologer } from './prokerala-sdk';
 import { getFormattedProkeralaDate } from './utils';
 
-const CLIENT_ID = process.env.PROKERALA_CLIENT_ID ?? '';
-const CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET ?? '';
+const CLIENT_ID = process.env.CLIENT_ID ?? '';
+const CLIENT_SECRET = process.env.CLIENT_SECRET ?? '';
 
 const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
 
@@ -54,7 +55,9 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
 export async function getUpcomingFestivals(): Promise<Festival[] | { error: string; details?: any }> {
     try {
         if (!CLIENT_ID || !CLIENT_SECRET) {
-            throw new Error('Prokerala API credentials are not set in the environment variables.');
+            const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
+            console.error(errorMsg);
+            return { error: errorMsg };
         }
 
         // Using Mumbai, India as default coordinates
@@ -65,7 +68,7 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
         if (result.status === 'error') {
             const errorDetails = result.errors?.[0]?.detail || 'No details provided';
             console.error(`Prokerala API Error fetching festivals: ${errorDetails}`);
-            throw new Error(`Prokerala API Error: ${errorDetails}`);
+            return { error: 'Failed to fetch festivals from Prokerala API.', details: errorDetails };
         }
 
         const festivalData = result.data?.festivals || [];
@@ -81,8 +84,6 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
 
     } catch (error: any) {
         console.error('Error fetching upcoming festivals:', error);
-        // In the component, we don't want to crash the page, so we return an empty array.
-        // A more robust solution might pass the error to the UI.
-        return [];
+        return { error: 'An unexpected error occurred while fetching festivals.', details: error.message };
     }
 }
