@@ -113,6 +113,18 @@ export const pujaKitsData: PujaKit[] = [
       }
     ]
   },
+   {
+    festival_hindi: "सरहुल",
+    festival_english: "Sarhul (Jharkhand)",
+    total_price_inr: 250,
+    puja_samagri: [
+      { item_hindi: "साल के फूल", item_english: "Sal Flowers", quantity: 1, unit: "गुच्छा", price_inr: 50 },
+      { item_hindi: "धनिया", item_english: "Coriander Seeds", quantity: 100, unit: "ग्राम", price_inr: 30 },
+      { item_hindi: "सिंदूर", item_english: "Vermilion", quantity: 20, unit: "ग्राम", price_inr: 20 },
+      { item_hindi: "चावल", item_english: "Rice", quantity: 250, unit: "ग्राम", price_inr: 50 },
+      { item_hindi: "अगरबत्ती", item_english: "Incense Sticks", quantity: 1, unit: "पैक", price_inr: 100 }
+    ]
+  },
   {
     festival_hindi: "राम नवमी",
     festival_english: "Rama Navami",
@@ -177,6 +189,60 @@ export const pujaKitsData: PujaKit[] = [
     ]
   },
   {
+    festival_hindi: "अक्षय तृतीया",
+    festival_english: "Akshaya Tritiya",
+    total_price_inr: 400,
+    puja_samagri: [
+      { item_hindi: "जौ", item_english: "Barley", quantity: 100, unit: "ग्राम", price_inr: 30 },
+      { item_hindi: "सोना/चांदी का सिक्का", item_english: "Gold/Silver Coin", quantity: 1, unit: "नग", price_inr: 250 },
+      { item_hindi: "कलश", item_english: "Kalash", quantity: 1, unit: "नग", price_inr: 80 },
+      { item_hindi: "नारियल", item_english: "Coconut", quantity: 1, unit: "नग", price_inr: 40 }
+    ]
+  },
+  {
+    festival_hindi: "गुरु पूर्णिमा",
+    festival_english: "Guru Purnima",
+    total_price_inr: 350,
+    puja_samagri: [
+      { item_hindi: "फूल माला", item_english: "Flower Garland", quantity: 1, unit: "नग", price_inr: 100 },
+      { item_hindi: "मिठाई", item_english: "Sweets", quantity: 500, unit: "ग्राम", price_inr: 150 },
+      { item_hindi: "फल", item_english: "Fruits", quantity: 1, unit: "किलो", price_inr: 100 }
+    ]
+  },
+  {
+    festival_hindi: "रक्षा बंधन",
+    festival_english: "Raksha Bandhan",
+    total_price_inr: 250,
+    puja_samagri: [
+      { item_hindi: "राखी", item_english: "Rakhi", quantity: 1, unit: "नग", price_inr: 100 },
+      { item_hindi: "रोली", item_english: "Roli", quantity: 20, unit: "ग्राम", price_inr: 30 },
+      { item_hindi: "चावल", item_english: "Rice", quantity: 50, unit: "ग्राम", price_inr: 20 },
+      { item_hindi: "मिठाई", item_english: "Sweets", quantity: 250, unit: "ग्राम", price_inr: 100 }
+    ]
+  },
+    {
+    festival_hindi: "करमा",
+    festival_english: "Karma (Jharkhand)",
+    total_price_inr: 200,
+    puja_samagri: [
+      { item_hindi: "करम का पेड़ की डाली", item_english: "Karam Tree Branch", quantity: 1, unit: "नग", price_inr: 50 },
+      { item_hindi: "फल", item_english: "Fruits", quantity: 500, unit: "ग्राम", price_inr: 80 },
+      { item_hindi: "सिंदूर", item_english: "Vermilion", quantity: 20, unit: "ग्राम", price_inr: 20 },
+      { item_hindi: "दीपक", item_english: "Diya", quantity: 5, unit: "नग", price_inr: 50 }
+    ]
+  },
+  {
+    festival_hindi: "कृष्ण जन्माष्टमी",
+    festival_english: "Krishna Janmashtami",
+    total_price_inr: 450,
+    puja_samagri: [
+      { item_hindi: "बाल कृष्ण की मूर्ति", item_english: "Bal Krishna Idol", quantity: 1, unit: "नग", price_inr: 200 },
+      { item_hindi: "माखन", item_english: "Butter", quantity: 100, unit: "ग्राम", price_inr: 50 },
+      { item_hindi: "मिश्री", item_english: "Sugar Candy", quantity: 100, unit: "ग्राम", price_inr: 40 },
+      { item_hindi: "झूला", item_english: "Swing (Jhula)", quantity: 1, unit: "नग", price_inr: 160 }
+    ]
+  },
+  {
     festival_hindi: "गणेश चतुर्थी",
     festival_english: "Ganesha Chaturthi",
     total_price_inr: 670,
@@ -189,7 +255,7 @@ export const pujaKitsData: PujaKit[] = [
         price_inr: 350
       },
       {
-        item_hindi: "मोडक",
+        item_hindi: "मोदक",
         item_english: "Modak",
         quantity: 21,
         unit: "नग",
@@ -209,6 +275,49 @@ export const pujaKitsData: PujaKit[] = [
         unit: "मीटर",
         price_inr: 50
       }
+    ]
+  },
+  {
+    festival_hindi: "नवरात्रि दिन 1",
+    festival_english: "Navaratri Day 1",
+    total_price_inr: 500,
+    puja_samagri: [
+      { item_hindi: "देवी दुर्गा की मूर्ति", item_english: "Goddess Durga Idol", quantity: 1, unit: "नग", price_inr: 250 },
+      { item_hindi: "लाल चुनरी", item_english: "Red Chunri", quantity: 1, unit: "नग", price_inr: 100 },
+      { item_hindi: "नारियल", item_english: "Coconut", quantity: 1, unit: "नग", price_inr: 40 },
+      { item_hindi: "अखंड ज्योति दीपक", item_english: "Akhand Jyoti Lamp", quantity: 1, unit: "नग", price_inr: 110 }
+    ]
+  },
+  {
+    festival_hindi: "दशहरा",
+    festival_english: "Dussehra (Vijaya Dashami)",
+    total_price_inr: 300,
+    puja_samagri: [
+      { item_hindi: "शमी पत्ता", item_english: "Shami Leaves", quantity: 11, unit: "पत्ते", price_inr: 50 },
+      { item_hindi: "पान", item_english: "Betel Leaf", quantity: 5, unit: "नग", price_inr: 20 },
+      { item_hindi: "मिठाई", item_english: "Sweets", quantity: 500, unit: "ग्राम", price_inr: 150 },
+      { item_hindi: "रावण पुतला", item_english: "Ravana Effigy (small)", quantity: 1, unit: "नग", price_inr: 80 }
+    ]
+  },
+  {
+    festival_hindi: "करवा चौथ",
+    festival_english: "Karwa Chauth",
+    total_price_inr: 400,
+    puja_samagri: [
+      { item_hindi: "करवा (मिट्टी का बर्तन)", item_english: "Karwa (Earthen Pot)", quantity: 1, unit: "नग", price_inr: 80 },
+      { item_hindi: "छलनी", item_english: "Sieve", quantity: 1, unit: "नग", price_inr: 70 },
+      { item_hindi: "सिंदूर", item_english: "Vermilion", quantity: 20, unit: "ग्राम", price_inr: 30 },
+      { item_hindi: "पूजा थाली", item_english: "Puja Thali", quantity: 1, unit: "नग", price_inr: 220 }
+    ]
+  },
+  {
+    festival_hindi: "धनतेरस",
+    festival_english: "Dhanteras",
+    total_price_inr: 350,
+    puja_samagri: [
+      { item_hindi: "नया बर्तन", item_english: "New Utensil", quantity: 1, unit: "नग", price_inr: 250 },
+      { item_hindi: "खील-बताशे", item_english: "Kheel-Batasha", quantity: 250, unit: "ग्राम", price_inr: 50 },
+      { item_hindi: "धनिया के बीज", item_english: "Coriander Seeds", quantity: 50, unit: "ग्राम", price_inr: 50 }
     ]
   },
   {
@@ -244,6 +353,27 @@ export const pujaKitsData: PujaKit[] = [
         unit: "नग",
         price_inr: 250
       }
+    ]
+  },
+  {
+    festival_hindi: "बंदना परब",
+    festival_english: "Bandna Parab (Jharkhand)",
+    total_price_inr: 300,
+    puja_samagri: [
+        { item_hindi: "धान", item_english: "Paddy", quantity: 1, unit: "किलो", price_inr: 60 },
+        { item_hindi: "सिंदूर", item_english: "Vermilion", quantity: 50, unit: "ग्राम", price_inr: 40 },
+        { item_hindi: "दीपक", item_english: "Diya", quantity: 11, unit: "नग", price_inr: 100 },
+        { item_hindi: "गाय के लिए माला", item_english: "Garland for Cow", quantity: 1, unit: "नग", price_inr: 100 }
+    ]
+  },
+  {
+    festival_hindi: "गोवर्धन पूजा",
+    festival_english: "Govardhan Puja",
+    total_price_inr: 250,
+    puja_samagri: [
+      { item_hindi: "गोबर", item_english: "Cow Dung", quantity: 1, unit: "किलो", price_inr: 50 },
+      { item_hindi: "अन्नकूट के लिए सब्जियां", item_english: "Vegetables for Annakut", quantity: 1, unit: "किलो", price_inr: 120 },
+      { item_hindi: "फूल", item_english: "Flowers", quantity: 250, unit: "ग्राम", price_inr: 80 }
     ]
   }
 ];
