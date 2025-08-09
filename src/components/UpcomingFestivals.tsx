@@ -89,7 +89,7 @@ export function UpcomingFestivals() {
             ))
           ) : (
              <div className="col-span-full text-center text-muted-foreground p-4">
-                No upcoming festivals found. Please check back later or try refreshing.
+                No upcoming festivals found in the next few days. Please check back later.
             </div>
           )}
         </div>

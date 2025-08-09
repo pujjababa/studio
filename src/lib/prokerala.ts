@@ -16,9 +16,7 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
             return { error: errorMsg };
         }
         
-        const formattedDate = getFormattedProkeralaDate(new Date(datetime));
-
-        const result = await client.getDailyPanchang(formattedDate, coordinates);
+        const result = await client.getDailyPanchang(datetime, coordinates);
         
         if (result.status === 'error') {
              console.error('Prokerala API Error in getDailyPanchang:', result.errors);
@@ -28,7 +26,7 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
             };
         }
         
-        return result;
+        return result.data;
 
     } catch (error: any) {
          console.error('Exception in getDailyPanchang:', error);
@@ -56,19 +54,20 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
             if (festivals.length >= 5) {
                 break;
             }
-
+            
             const date = new Date();
             date.setDate(date.getDate() + i);
             const isoDate = date.toISOString().split('T')[0];
+            const formattedDate = getFormattedProkeralaDate(date);
 
-            const result = await getDailyPanchang(isoDate, coordinates);
-
-            if (result.status === 'success' && result.data?.festival?.name) {
+            const result = await getDailyPanchang(formattedDate, coordinates);
+            
+            if (result && !result.error && result.festival?.name) {
                 festivals.push({
-                    name: result.data.festival.name,
+                    name: result.festival.name,
                     startDate: isoDate,
-                    description: result.data.festival.description,
-                    tithi: result.data.tithi?.name,
+                    description: result.festival.description,
+                    tithi: result.tithi?.name,
                 });
             }
         }

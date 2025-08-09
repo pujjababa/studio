@@ -13,16 +13,15 @@ class ProkeralaAstrologer {
             return this.tokenCache.token;
         }
 
+        const credentials = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
+        
         const response = await fetch(`${this.apiEndpoint}/token`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: new URLSearchParams({
-                grant_type: 'client_credentials',
-                client_id: this.clientId,
-                client_secret: this.clientSecret,
-            }),
+            body: 'grant_type=client_credentials'
         });
         
         if (!response.ok) {
@@ -55,11 +54,7 @@ class ProkeralaAstrologer {
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`API request failed: ${response.statusText} - ${errorText}`);
-            try {
-                return JSON.parse(errorText);
-            } catch (e) {
-                return { status: 'error', errors: [{detail: `API request failed: ${response.statusText}`}]};
-            }
+             return { status: 'error', errors: [{detail: `API request failed: ${response.statusText}`}]};
         }
         
         return response.json();
@@ -71,14 +66,6 @@ class ProkeralaAstrologer {
             coordinates,
             ayanamsa,
             la: language,
-        });
-    }
-
-    async getUpcomingFestivals(coordinates, ayanamsa = 1, days = 30) {
-        return this.get('/v2/astrology/panchang/upcoming-festivals', {
-            coordinates,
-            ayanamsa,
-            days,
         });
     }
 }
