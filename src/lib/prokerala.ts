@@ -76,6 +76,7 @@ export async function getUpcomingFestivals(detailedError = false): Promise<Festi
         
         if (result.status === 'error') {
             const errorDetails = result.errors?.[0]?.detail || 'No details provided';
+            console.error(`Prokerala API Error fetching festivals: ${errorDetails}`);
             if (detailedError) {
                 return { error: 'API returned an error', details: errorDetails };
             }
@@ -88,18 +89,20 @@ export async function getUpcomingFestivals(detailedError = false): Promise<Festi
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const upcoming = festivalData.filter((festival) => {
+        const upcoming = festivalData.filter((festival: any) => {
             const festivalDate = new Date(festival.start_date);
             return festivalDate >= today;
         });
 
-        const festivals = upcoming.slice(0, 5).map((f) => ({
+        const festivals = upcoming.slice(0, 5).map((f: any) => ({
             name: f.name,
             startDate: f.start_date,
         }));
         
-        // @ts-ignore
-        if (detailedError) { return festivals; }
+        if (detailedError) { 
+            // @ts-ignore
+            return festivals; 
+        }
         
         return festivals;
 

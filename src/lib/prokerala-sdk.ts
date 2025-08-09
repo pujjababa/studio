@@ -31,7 +31,7 @@ class ProkeralaAstrologer {
         }
         
         const url = new URL(`${this.apiEndpoint}/${path}`);
-        url.search = new URLSearchParams(params).toString();
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
             
         let response = await fetch(url.toString(), {
             headers: {
@@ -84,9 +84,9 @@ class ProkeralaAstrologer {
         });
     }
 
-    async getPanchangFestivals(location, year, religiousOnly, ayanamsa, language) {
+    async getPanchangFestivals(location, year, religiousOnly = true, ayanamsa = 1, language = 'en') {
         return this.get('astrology/panchang-festivals', {
-            'location': `${location.latitude},${location.longitude}`,
+            'coordinates': `${location.latitude},${location.longitude}`,
             'year': year,
             'religious_only': religiousOnly,
             'ayanamsa': ayanamsa,
