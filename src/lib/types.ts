@@ -21,7 +21,7 @@ export interface Review {
 }
 
 export interface Content {
-    id: string;
+    id:string;
     type: 'blog' | 'video';
     title: string;
     excerpt: string;
@@ -42,7 +42,7 @@ export interface Temple {
 
 export interface Festival {
   name: string;
-  startDate: string;
+  date: string;
   description?: string;
   tithi?: string;
 }

@@ -13,7 +13,7 @@ interface FestivalCardProps {
 }
 
 export function FestivalCard({ festival }: FestivalCardProps) {
-  const date = new Date(festival.startDate);
+  const date = new Date(festival.date);
   // Adjust for timezone to show correct date
   const userTimezoneOffset = date.getTimezoneOffset() * 60000;
   const localDate = new Date(date.getTime() + userTimezoneOffset);

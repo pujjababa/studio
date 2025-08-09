@@ -19,14 +19,7 @@ export function UpcomingFestivals() {
     setError(null);
     try {
       const result = await fetchFestivalsAction();
-      // @ts-ignore
-      if (result.error) {
-        // @ts-ignore
-        setError(result.details || result.error);
-        setFestivals([]);
-      } else {
-        setFestivals(result as Festival[]);
-      }
+      setFestivals(result);
     } catch (err: any) {
       console.error('Failed to fetch festivals:', err);
       setError(err.message || 'An unexpected error occurred.');
@@ -85,7 +78,7 @@ export function UpcomingFestivals() {
               </div>
           ) : festivals.length > 0 ? (
             festivals.map((festival) => (
-              <FestivalCard key={festival.name} festival={festival} />
+              <FestivalCard key={`${festival.name}-${festival.date}`} festival={festival} />
             ))
           ) : (
              <div className="col-span-full text-center text-muted-foreground p-4">

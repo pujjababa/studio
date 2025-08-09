@@ -1,78 +1,74 @@
+'use server';
 
 import type { Festival, Panchang } from './types';
 import { ProkeralaAstrologer } from './prokerala-sdk';
-import { getFormattedProkeralaDate } from './utils';
 
-const CLIENT_ID = process.env.CLIENT_ID ?? '';
-const CLIENT_SECRET = process.env.CLIENT_SECRET ?? '';
+const astrologer = new ProkeralaAstrologer(
+  process.env.PROKERALA_CLIENT_ID,
+  process.env.PROKERALA_CLIENT_SECRET
+);
 
-const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
-
-export async function getDailyPanchang(datetime: string, coordinates: string): Promise<Panchang | { error: string; details?: any }> {
-    try {
-         if (!CLIENT_ID || !CLIENT_SECRET) {
-            const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
-            console.error(errorMsg);
-            return { error: errorMsg };
-        }
-        
-        const result = await client.getDailyPanchang(datetime, coordinates);
-        
-        if (result.status === 'error' || !result.data) {
-             console.error('Prokerala API Error in getDailyPanchang:', result.errors);
-             return {
-                error: 'Failed to fetch panchang from Prokerala API.',
-                details: result.errors?.[0]?.detail || 'No specific error details provided.',
-            };
-        }
-        
-        return result.data as Panchang;
-
-    } catch (error: any) {
-         console.error('Exception in getDailyPanchang:', error);
-         return {
-            error: 'Failed to fetch panchang from Prokerala API.',
-            details: error.message || 'No additional details',
-        };
-    }
+export async function getDailyPanchang(
+  date: Date,
+  latitude: number,
+  longitude: number
+): Promise<Panchang | null> {
+  try {
+    const panchang = await astrologer.getDailyPanchang(
+      date,
+      latitude,
+      longitude
+    );
+    return panchang as Panchang;
+  } catch (error) {
+    console.error('Error fetching daily panchang:', error);
+    return null;
+  }
 }
 
-export async function getUpcomingFestivals(): Promise<Festival[] | { error: string; details?: any }> {
-    try {
-        if (!CLIENT_ID || !CLIENT_SECRET) {
-            const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
-            console.error(errorMsg);
-            return { error: errorMsg };
+export async function getUpcomingFestivals(
+  days: number,
+  latitude: number,
+  longitude: number
+): Promise<Festival[]> {
+  const festivals: Festival[] = [];
+  const today = new Date();
+  const checkedDates = new Set<string>();
+
+  try {
+    const token = await astrologer.fetchToken();
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      if (checkedDates.has(dateString)) continue;
+      checkedDates.add(dateString);
+
+      const result = await astrologer.getDailyPanchang(date, latitude, longitude, token);
+
+      if (result && result.festival && result.festival.name) {
+        const existing = festivals.find(f => f.name === result.festival.name);
+        if(!existing) {
+            festivals.push({
+                name: result.festival.name,
+                date: dateString,
+                description: result.festival.description,
+                tithi: result.tithi.name,
+            });
         }
-
-        // Using Mumbai, India as default coordinates
-        const coordinates = '19.0760,72.8777';
-        // The number of days to fetch festivals for.
-        const days = 30;
-
-        const result = await client.getUpcomingFestivals(coordinates, days);
-
-        if (result.status === 'error' || !result.data) {
-             console.error('Prokerala API Error in getUpcomingFestivals:', result.errors);
-             return {
-                error: 'Failed to fetch upcoming festivals from Prokerala API.',
-                details: result.errors?.[0]?.detail || 'No specific error details provided.',
-            };
-        }
-        
-        // The API returns festivals inside a nested `festivals` array.
-        const festivals = result.data.festivals.map((f: any) => ({
-            name: f.name,
-            startDate: f.date,
-            description: f.description,
-            tithi: f.tithi,
-        }));
-        
-        // Return first 5 festivals
-        return festivals.slice(0, 5);
-
-    } catch (error: any) {
-        console.error('Error fetching upcoming festivals:', error);
-        return { error: 'An unexpected error occurred while fetching festivals.', details: error.message };
+      }
+      
+      if (festivals.length >= 5) {
+        break;
+      }
     }
+  } catch (error) {
+    console.error('Failed to fetch upcoming festivals:', error);
+    // Return empty array on error to prevent crashing the page
+    return [];
+  }
+
+  return festivals;
 }
