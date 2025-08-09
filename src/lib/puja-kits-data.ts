@@ -213,7 +213,7 @@ export const pujaKitsData: PujaKit[] = [
   },
   {
     festival_hindi: "दीपावली",
-    festival_english: "Diwali",
+    festival_english: "Diwali (Lakshmi Puja)",
     total_price_inr: 465,
     puja_samagri: [
       {

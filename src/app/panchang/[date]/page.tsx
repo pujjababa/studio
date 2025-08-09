@@ -28,7 +28,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
 
     const panchang = getPanchang(date);
     const festival = getFestivalByDate(dateStr);
-    const pujaKit = festival ? pujaKitsData.find(k => k.festival_hindi === festival.name) : undefined;
+    const pujaKit = festival ? pujaKitsData.find(k => k.festival_english === festival.name) : undefined;
 
     if (!panchang) {
         return <div>Could not calculate Panchang for this date.</div>
