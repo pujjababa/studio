@@ -2,11 +2,13 @@
 export const festivalRules = [
     { name: "Maha Shivaratri", month: "Phalguna", paksha: "Krishna", tithi: "Chaturdashi" },
     { name: "Holi", month: "Phalguna", paksha: "Shukla", tithi: "Purnima" },
+    { name: "Sarhul (Jharkhand)", month: "Chaitra", paksha: "Shukla", tithi: "Tritiya" },
     { name: "Rama Navami", month: "Chaitra", paksha: "Shukla", tithi: "Navami" },
     { name: "Hanuman Jayanti", month: "Chaitra", paksha: "Shukla", tithi: "Purnima" },
     { name: "Akshaya Tritiya", month: "Vaishakha", paksha: "Shukla", tithi: "Tritiya" },
     { name: "Guru Purnima", month: "Ashadha", paksha: "Shukla", tithi: "Purnima" },
     { name: "Raksha Bandhan", month: "Shravana", paksha: "Shukla", tithi: "Purnima" },
+    { name: "Karma (Jharkhand)", month: "Bhadrapada", paksha: "Shukla", tithi: "Ekadashi" },
     { name: "Krishna Janmashtami", month: "Bhadrapada", paksha: "Krishna", tithi: "Ashtami" },
     { name: "Ganesha Chaturthi", month: "Bhadrapada", paksha: "Shukla", tithi: "Chaturthi" },
     { name: "Navaratri Day 1", month: "Ashwin", paksha: "Shukla", tithi: "Pratipada" },
@@ -14,5 +16,6 @@ export const festivalRules = [
     { name: "Karwa Chauth", month: "Kartika", paksha: "Krishna", tithi: "Chaturthi" },
     { name: "Dhanteras", month: "Kartika", paksha: "Krishna", tithi: "Trayodashi" },
     { name: "Diwali (Lakshmi Puja)", month: "Kartika", paksha: "Krishna", tithi: "Amavasya" },
+    { name: "Bandna Parab (Jharkhand)", month: "Kartika", paksha: "Krishna", tithi: "Amavasya" },
     { name: "Govardhan Puja", month: "Kartika", paksha: "Shukla", tithi: "Pratipada" },
 ];
