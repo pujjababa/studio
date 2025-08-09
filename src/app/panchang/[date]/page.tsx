@@ -3,7 +3,7 @@
 import { getPanchang, getFestivalByDate } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset } from 'lucide-react';
+import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset, CalendarDays } from 'lucide-react';
 import { pujaKitsData } from '@/lib/puja-kits-data';
 import { PujaKit } from '@/components/PujaKit';
 
@@ -50,6 +50,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
         { icon: <Star className="h-5 w-5 md:h-6 md:w-6" />, label: "Nakshatra (नक्षत्र)", value: panchang.nakshatra },
         { icon: <Zap className="h-5 w-5 md:h-6 md:w-6" />, label: "Yoga (योग)", value: panchang.yoga },
         { icon: <Waves className="h-5 w-5 md:h-6 md:w-6" />, label: "Karana (करण)", value: panchang.karana },
+        { icon: <CalendarDays className="h-5 w-5 md:h-6 md:w-6" />, label: "Month (मास)", value: panchang.month },
         { icon: <Sunrise className="h-5 w-5 md:h-6 md:w-6" />, label: "Sunrise (सूर्योदय)", value: panchang.sunrise },
         { icon: <Sunset className="h-5 w-5 md:h-6 md:w-6" />, label: "Sunset (सूर्यास्त)", value: panchang.sunset },
     ];
@@ -70,7 +71,7 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                         <CardTitle className="font-headline text-3xl">Daily Panchang Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-y-6 md:gap-y-8 gap-x-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 md:gap-y-8 gap-x-4">
                             {panchangDetails.map((detail) => (
                                 <DetailItem key={detail.label} {...detail} />
                             ))}
