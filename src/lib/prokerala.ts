@@ -8,7 +8,7 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET ?? '';
 
 const client = new ProkeralaAstrologer(CLIENT_ID, CLIENT_SECRET);
 
-export async function getDailyPanchang(datetime: string, coordinates: string): Promise<Panchang | { error: string; details?: any }> {
+export async function getDailyPanchang(datetime: string, coordinates: string): Promise<any | { error: string; details?: any }> {
     try {
          if (!CLIENT_ID || !CLIENT_SECRET) {
             const errorMsg = 'Prokerala API credentials are not set in the environment variables.';
@@ -28,21 +28,8 @@ export async function getDailyPanchang(datetime: string, coordinates: string): P
             };
         }
         
-        const panchangData = result.data;
+        return result;
 
-        if (!panchangData || Object.keys(panchangData).length === 0 || !panchangData.tithi || !panchangData.nakshatra || !panchangData.yoga) {
-             console.error('Incomplete panchang data received:', panchangData);
-             return {
-                error: 'Failed to fetch panchang from Prokerala API.',
-                details: 'Response did not contain complete panchang data.',
-            };
-        }
-        
-        return {
-            tithi: panchangData.tithi.name,
-            nakshatra: panchangData.nakshatra.name,
-            yoga: panchangData.yoga.name,
-        };
     } catch (error: any) {
          console.error('Exception in getDailyPanchang:', error);
          return {
@@ -62,23 +49,29 @@ export async function getUpcomingFestivals(): Promise<Festival[] | { error: stri
 
         // Using Mumbai, India as default coordinates
         const coordinates = '19.0760,72.8777';
-        
-        const result = await client.getUpcomingFestivals(coordinates, 1, 60);
-        
-        if (result.status === 'error') {
-            const errorDetails = result.errors?.[0]?.detail || 'No details provided';
-            console.error(`Prokerala API Error fetching festivals: ${errorDetails}`);
-            return { error: 'Failed to fetch festivals from Prokerala API.', details: errorDetails };
-        }
+        const daysToFetch = 60;
+        const festivals: Festival[] = [];
 
-        const festivalData = result.data?.festivals || [];
-        
-        const festivals = festivalData.slice(0, 5).map((f: any) => ({
-            name: f.name,
-            startDate: f.date,
-            description: f.description,
-            tithi: f.tithi,
-        }));
+        for (let i = 0; i < daysToFetch; i++) {
+            if (festivals.length >= 5) {
+                break;
+            }
+
+            const date = new Date();
+            date.setDate(date.getDate() + i);
+            const isoDate = date.toISOString().split('T')[0];
+
+            const result = await getDailyPanchang(isoDate, coordinates);
+
+            if (result.status === 'success' && result.data?.festival?.name) {
+                festivals.push({
+                    name: result.data.festival.name,
+                    startDate: isoDate,
+                    description: result.data.festival.description,
+                    tithi: result.data.tithi?.name,
+                });
+            }
+        }
         
         return festivals;
 

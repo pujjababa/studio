@@ -66,16 +66,12 @@ class ProkeralaAstrologer {
     }
 
     async getDailyPanchang(datetime, coordinates, ayanamsa = 1, language = 'en') {
-        const result = await this.get('/v2/astrology/panchang', {
+        return this.get('/v2/astrology/panchang', {
             datetime,
             coordinates,
             ayanamsa,
             la: language,
         });
-        if (result.status === 'error') {
-            return result;
-        }
-        return { status: 'success', data: result.data ?? {} };
     }
 
     async getUpcomingFestivals(coordinates, ayanamsa = 1, days = 30) {

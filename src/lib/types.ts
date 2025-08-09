@@ -48,7 +48,8 @@ export interface Festival {
 }
 
 export interface Panchang {
-    tithi: string;
-    nakshatra: string;
-    yoga: string;
+    tithi: { name: string };
+    nakshatra: { name: string };
+    yoga: { name: string };
+    festival?: { name: string; description?: string };
 }
