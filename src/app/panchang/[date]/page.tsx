@@ -2,7 +2,9 @@
 import { getPanchang } from '@/lib/panchang';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset } from 'lucide-react';
+import { Calendar, Sun, Moon, Star, Zap, Waves, Sunrise, Sunset, ShoppingCart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const DetailRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string }) => (
     <div className="flex items-start justify-between py-3 border-b last:border-b-0">
@@ -64,6 +66,13 @@ export default function PanchangDetailPage({ params }: { params: { date: string 
                             <h3 className="text-center font-headline text-2xl mb-4">Timings</h3>
                              <DetailRow icon={<Sunrise className="h-6 w-6 text-amber-500" />} label="सूर्योदय (Sunrise)" value={panchang.sunrise} />
                              <DetailRow icon={<Sunset className="h-6 w-6 text-orange-600" />} label="सूर्यास्त (Sunset)" value={panchang.sunset} />
+                        </div>
+                        <div className="mt-8 pt-6 border-t text-center">
+                            <Button asChild size="lg" className="mt-4">
+                                <Link href="/puja-kits">
+                                    <ShoppingCart className="mr-2 h-5 w-5" /> Shop for Puja Kits
+                                </Link>
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
